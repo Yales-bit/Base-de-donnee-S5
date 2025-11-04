@@ -32,9 +32,14 @@ import com.vaadin.flow.router.Route;
 @Route(value = "")
 @PageTitle("Likes")
 public class VuePrincipale extends VerticalLayout {
-
+    private BoiteACoucou bac1;
+    private BoiteACoucou bac2;
+            
     public VuePrincipale() {
         this.add(new H2("TODO"));
+        this.bac1 = new BoiteACoucou();
+        this.bac2 = new BoiteACoucou();
+        this.add(this.bac1, this.bac2);
     }
 
 }
