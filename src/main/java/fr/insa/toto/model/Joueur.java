@@ -106,5 +106,5 @@ public class Joueur extends ClasseMiroir {
         this.taille = taille;
     }
   
-    
+ //test commit Hack   
 }
