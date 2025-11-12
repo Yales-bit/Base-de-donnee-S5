@@ -74,7 +74,7 @@ public class BoiteACoucou extends VerticalLayout{
         this.bCoucou = new Button("Coucou");
         this.bCoucou.addClickListener((t) -> {
             String Nom = this.tfnom.getValue();
-            this.taMess.setValue(this.taMess.getValue() + "COUCOU " + Nom + "\n");
+            this.taMess.setValue(this.taMess.getValue() + "COUCOU v3" + Nom + "\n");
         });
         this.bSalut = new Button("Salut");
         this.bSalut.getStyle().set("color", "red");
