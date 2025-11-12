@@ -105,5 +105,6 @@ public class Joueur extends ClasseMiroir {
     public void setTaille(int taille) {
         this.taille = taille;
     }
-
+  
+    
 }
