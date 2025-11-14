@@ -35,10 +35,13 @@ import java.util.logging.Logger;
 public class Tournoi extends ClasseMiroir {
     
     private int nbrjoueurparequipe;
+    private int nbrequipes;
 
     public Tournoi(int nbrjoueurparequipe ) {
         this.nbrjoueurparequipe = nbrjoueurparequipe;
+        this.nbrequipes = nbrequipes;
     }
+
 
   @Override
     protected Statement saveSansId(Connection con) throws SQLException {
@@ -50,6 +53,22 @@ public class Tournoi extends ClasseMiroir {
 
     }
 
+    
+    public int getNbrJoueursParEquipe() {
+        return nbrjoueurparequipe;
+    }
+
+    public void setNbrJoueursParEquipe(int nbrjoueurparequipe) {
+        this.nbrjoueurparequipe = nbrjoueurparequipe;
+    }
+
+    public int getNbEquipes() {
+        return nbrequipes;
+    }
+
+    public void setNbEquipes(int nbrequipes) {
+        this.nbrequipes = nbrequipes;
+    }
 
     
 }
