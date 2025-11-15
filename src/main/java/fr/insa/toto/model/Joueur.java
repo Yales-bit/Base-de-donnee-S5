@@ -18,19 +18,15 @@ along with CoursBeuvron.  If not, see <http://www.gnu.org/licenses/>.
  */
 package fr.insa.toto.model;
 
-import fr.insa.beuvron.utils.database.ClasseMiroir;
-import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-/**
- *
- * @author jcardot01
- */
+import fr.insa.beuvron.utils.database.ClasseMiroir;
+import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
+
+
 public class Joueur extends ClasseMiroir {
 
     private String surnom;
