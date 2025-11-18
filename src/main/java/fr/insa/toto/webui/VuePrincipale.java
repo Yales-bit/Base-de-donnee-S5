@@ -21,9 +21,16 @@ package fr.insa.toto.webui;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import fr.insa.beuvron.utils.database.ConnectionPool;
+import fr.insa.beuvron.vaadin.utils.dataGrid.ResultSetGrid;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  *
@@ -40,6 +47,16 @@ public class VuePrincipale extends VerticalLayout {
         this.bac1 = new BoiteACoucou();
         this.bac2 = new BoiteACoucou();
         this.add(this.bac1, this.bac2);
+        
+        try (Connection con = ConnectionPool.getConnection()){
+            //select nom,categorie from joueur where surnom = 'toto'
+            PreparedStatement st = con.prepareStatement( "select surnom,taille from joueur");
+            ResultSetGrid g = new ResultSetGrid(st);
+            this.add(g);
+
+        } catch(SQLException ex){
+            Notification.show("Erreur : " + ex.getMessage());
+        }
     }
 
 }
