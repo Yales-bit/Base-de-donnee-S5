@@ -53,7 +53,7 @@ public class Tournoi extends ClasseMiroir {
 
     }
 
-    
+
     public int getNbrJoueursParEquipe() {
         return nbrjoueurparequipe;
     }
