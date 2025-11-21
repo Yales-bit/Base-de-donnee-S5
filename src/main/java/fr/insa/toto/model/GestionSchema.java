@@ -40,68 +40,63 @@ public class GestionSchema {
             con.setAutoCommit(false);
             try (Statement st = con.createStatement()) {
                 // creation des tables
-                st.executeUpdate("create table joueur ( "
+                st.executeUpdate("create table Joueurs ( "
                         + ConnectionSimpleSGBD.sqlForGeneratedKeys(con, "id") + ","
                         + " surnom varchar(30) not null unique,"
                         + " taille integer,"                   
-                        + " categorie char(1) not null "
+                        + " sexe varchar(15) not null "
                         + ") "
                 );
-                
-                st.executeUpdate("create table terrain ( "            
+                st.executeUpdate("CREATE TABLE Tournois ( "
+                        + "idtournoi INTEGER NOT NULL UNIQUE, "
+                        + "nom VARCHAR(255) NOT NULL, "
+                        + "nbrjoueursparequipe INT NOT NULL, "
+                        + "nbrequipes INT NOT NULL, "
+                        + "dureematch INT NOT NULL, "
+                        + "nbrequipemax INT, "
+                        + "nbrequipemin INT, "
+                        + "nbrrondes INT NOT NULL, "
+                        + "nbreterrains INT NOT NULL, "
+                        + "ouvert BOOLEAN DEFAULT FALSE, "
+                        + "fini BOOLEAN DEFAULT FALSE "
+                        + ")");
+
+                st.executeUpdate("create table Terrains ( "            
                         + "id integer,"
                         + " description text"
                         + ") "
                 );
-                st.executeUpdate("create table matchs ( "
+                st.executeUpdate("create table Matchs ( "
                         + " id integer not null,"
                         + " idloisir integer not null,"
                         + " statut integer not null "
                         + ") "
                 );
-                st.executeUpdate("create table equipe ( "
+                st.executeUpdate("create table Rondes ( "
+                        + "id integer not null unique,"
+                        + " numero integer not null,"
+                        + " statut varchar(30) not null,"
+                        + " idtournoi integer not null,"
+                        + " FOREIGN KEY (idtournoi) REFERENCES Tournois(idtournoi)" // Ajout de la contrainte de clé étrangère
+                        + ") "
+                );
+
+                st.executeUpdate("create table Equipes ( "
                         + " id integer not null,"
-                        + " num integer not null,"
+                        + " nom varchar(30) not null,"
                         + " score integer not null, "
                         + " idmatch integer not null "
                         + ") "
                 );
-                st.executeUpdate("create table composition ( "
+                st.executeUpdate("create table Composition ( "
                         + " idequipe integer not null,"
                         + " idjoueur integer not null"                     
                         + ") "
                 );
-                st.executeUpdate("create table tournoi ( "
-                        + " nbjoueurparequipe integer not null,"
-                        + " idjoueur integer not null"                     
-                        + ") "
-                );
-                /*
-                con.commit();
-                st.executeUpdate("create table apprecie ( "
-                        + " u1 integer not null,"
-                        + " u2 integer not null"
-                        + ") "
-                );
 
-                st.executeUpdate("alter table apprecie\n"
-                        + "  add constraint fk_apprecie_u1\n"
-                        + "  foreign key (u1) references utilisateur(id)"
-                );
-                st.executeUpdate("alter table apprecie\n"
-                        + "  add constraint fk_apprecie_u2\n"
-                        + "  foreign key (u2) references utilisateur(id)"
-                );
-                st.executeUpdate("alter table pratique\n"
-                        + "  add constraint fk_pratique_idutilisateur\n"
-                        + "  foreign key (idutilisateur) references utilisateur(id)"
-                );
+                
+                
 
-                st.executeUpdate("alter table pratique\n"
-                        + "  add constraint fk_pratique_idloisir\n"
-                        + "  foreign key (idloisir) references loisir(id)"
-                );
-*/
                 con.commit();
             }
         } catch (SQLException ex) {
@@ -120,27 +115,27 @@ public class GestionSchema {
     public static void deleteSchema(Connection con) throws SQLException {
         try (Statement st = con.createStatement()) {
             try {
-                st.executeUpdate("drop table joueur");
+                st.executeUpdate("drop table Joueurs");
             } catch (SQLException ex) {
             }
             try {
-                st.executeUpdate("drop table terrain");
+                st.executeUpdate("drop table Terrains");
             } catch (SQLException ex) {
             }
             try {
-                st.executeUpdate("drop table matchs");
+                st.executeUpdate("drop table Matchs");
             } catch (SQLException ex) {
             }
             try {
-                st.executeUpdate("drop table equipe");
+                st.executeUpdate("drop table Equipes");
             } catch (SQLException ex) {
             }
             try {
-                st.executeUpdate("drop table composition");
+                st.executeUpdate("drop table Composition");
             } catch (SQLException ex) {
             }
             try {
-                st.executeUpdate("drop table tournoi");
+                st.executeUpdate("drop table Tournois");
             } catch (SQLException ex) {
             }
         }

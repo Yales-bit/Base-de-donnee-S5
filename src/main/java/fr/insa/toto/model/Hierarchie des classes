@@ -1,0 +1,9 @@
+Remplace l'UML incomplet
+- Joueur (attributs...) -> ne dépend de rien d'autres
+
+- Tournoi (sommet de l'arbre)
+    -> N Rondes : Une ronde est définie par le tournoi auquel elle appartient
+        -> X Equipes : Une équipe est définie (entre autres) par la ronde à laquelle elle participe (mix des joueurs à chaque ronde selon le règlement)
+            -> X/2 Matchs : un match est défini (entre autres) par les équipes qui y participent
+
+Ces dépendances fixent l'ordre dans lequel on peut définir les objets.

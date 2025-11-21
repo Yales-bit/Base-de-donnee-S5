@@ -30,35 +30,44 @@ import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
 public class Joueur extends ClasseMiroir {
 
     private String surnom;
-    private String categorie;
+    private StatutSexe sexe;
     private int taille;
 
-    public Joueur(String surnom, String categorie, int taille) {
+    //Constructeur utilisé quand on ne connait pas encore l'id du joueur (il vient d'être créé)
+    public Joueur(String surnom, StatutSexe sexe, int taille) {
+        super();
         this.surnom = surnom;
-        this.categorie = categorie;
+        this.sexe = sexe;
         this.taille = taille;
     }
 
+    //Constructeur utilisé quand on connait l'id du joueur (il vient d'avoir son id attribué)
+    public Joueur(int id, String surnom, StatutSexe sexe, int taille) {
+        super(id);
+        this.surnom = surnom;
+        this.sexe = sexe;
+        this.taille = taille;
+    }
     @Override
     protected Statement saveSansId(Connection con) throws SQLException {
         PreparedStatement pst = con.prepareStatement("insert into joueur (surnom, categorie, taille) \n"
                 + "values(?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
         pst.setString(1, this.surnom);
-        pst.setString(2, this.categorie);
+        pst.setString(2, this.sexe.toString());
         pst.setInt(3, this.taille);
         pst.executeUpdate();
         return pst;
 
     }
 
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
         try {
             Joueur j1 = new Joueur("testCre2", "J", 152);
             int id = j1.saveInDB(ConnectionSimpleSGBD.defaultCon());
         } catch (SQLException ex) {
             throw new Error(ex);
         }
-    }
+    }*/
 
     /**
      * @return the surnom
@@ -77,15 +86,12 @@ public class Joueur extends ClasseMiroir {
     /**
      * @return the categorie
      */
-    public String getCategorie() {
-        return categorie;
+    public StatutSexe getSexe() {
+        return sexe;
     }
-
-    /**
-     * @param categorie the categorie to set
-     */
-    public void setCategorie(String categorie) {
-        this.categorie = categorie;
+    
+    public void setSexe(StatutSexe sexe) {
+        this.sexe = sexe;
     }
 
     /**

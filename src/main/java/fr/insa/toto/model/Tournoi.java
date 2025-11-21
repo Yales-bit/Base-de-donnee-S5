@@ -72,15 +72,28 @@ public class Tournoi extends ClasseMiroir {
         this.fini = fini;
     }
 
-  @Override
-    protected Statement saveSansId(Connection con) throws SQLException {
-        PreparedStatement pst = con.prepareStatement("insert into joueur (surnom, categorie, taille) \n"
-                + "values(?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
-        pst.setInt(1, this.nbrjoueursparequipe);
-        pst.executeUpdate();
-        return pst;
+    public static void addTournoi (Tournoi T){
+
 
     }
+
+@Override
+protected Statement saveSansId(Connection con) throws SQLException {
+    PreparedStatement pst = con.prepareStatement("insert into tournoi (nbrjoueursparequipe, nbrequipes, dureematch, nbrequipemax, nbrequipemin, nbrrondes, nom, nbreterrains, ouvert, fini) \n"
+            + "values(?,?,?,?,?,?,?,?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
+    pst.setInt(1, this.nbrjoueursparequipe);
+    pst.setInt(2, this.nbrequipes);
+    pst.setInt(3, this.dureematch);
+    pst.setInt(4, this.nbrequipemax);
+    pst.setInt(5, this.nbrequipemin);
+    pst.setInt(6, this.nbrrondes);
+    pst.setString(7, this.nom);
+    pst.setInt(8, this.nbreterrains);
+    pst.setBoolean(9, this.ouvert);
+    pst.setBoolean(10, this.fini);
+    pst.executeUpdate();
+    return pst;
+}
 
 
     public int getNbrJoueursParEquipe() {
