@@ -59,7 +59,18 @@ public class Tournoi extends ClasseMiroir {
         this.fini = fini;
 
     }
-
+    
+    //constructeur secondaire (sans spécification du nombre max/min d'équipes)
+    public Tournoi(int nbrjoueursparequipe, int nbrequipes, int dureematch, int nbrrondes, String nom, int nbreterrains, boolean ouvert, boolean fini) {
+        this.nbrjoueursparequipe = nbrjoueursparequipe;
+        this.nbrequipes = nbrequipes;
+        this.dureematch = dureematch;
+        this.nbrrondes = nbrrondes;
+        this.nom = nom;
+        this.nbreterrains = nbreterrains;
+        this.ouvert = ouvert;
+        this.fini = fini;
+    }
 
   @Override
     protected Statement saveSansId(Connection con) throws SQLException {
