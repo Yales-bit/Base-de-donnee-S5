@@ -34,12 +34,30 @@ import java.util.logging.Logger;
 
 public class Tournoi extends ClasseMiroir {
     
-    private int nbrjoueurparequipe;
+    private int nbrjoueursparequipe;
     private int nbrequipes;
+    private int dureematch;
+    private int nbrequipemax;
+    private int nbrequipemin;
+    private int nbrrondes;
+    private String nom;
+    private int nbreterrains;
+    private boolean ouvert = false;
+    private boolean fini = false;
 
-    public Tournoi(int nbrjoueurparequipe ) {
-        this.nbrjoueurparequipe = nbrjoueurparequipe;
+    //constructeur maximal (avec tous les attributs)
+    public Tournoi(int nbrjoueursparequipe, int nbrequipes, int dureematch, int nbrequipemax, int nbrequipemin, int nbrrondes, String nom, int nbreterrains, boolean ouvert, boolean fini) {
+        this.nbrjoueursparequipe = nbrjoueursparequipe;
         this.nbrequipes = nbrequipes;
+        this.dureematch = dureematch;
+        this.nbrequipemax = nbrequipemax;
+        this.nbrequipemin = nbrequipemin;
+        this.nbrrondes = nbrrondes;
+        this.nom = nom;
+        this.nbreterrains = nbreterrains;
+        this.ouvert = ouvert;
+        this.fini = fini;
+
     }
 
 
@@ -47,7 +65,7 @@ public class Tournoi extends ClasseMiroir {
     protected Statement saveSansId(Connection con) throws SQLException {
         PreparedStatement pst = con.prepareStatement("insert into joueur (surnom, categorie, taille) \n"
                 + "values(?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
-        pst.setInt(1, this.nbrjoueurparequipe);
+        pst.setInt(1, this.nbrjoueursparequipe);
         pst.executeUpdate();
         return pst;
 
@@ -55,11 +73,11 @@ public class Tournoi extends ClasseMiroir {
 
 
     public int getNbrJoueursParEquipe() {
-        return nbrjoueurparequipe;
+        return nbrjoueursparequipe;
     }
 
     public void setNbrJoueursParEquipe(int nbrjoueurparequipe) {
-        this.nbrjoueurparequipe = nbrjoueurparequipe;
+        this.nbrjoueursparequipe = nbrjoueurparequipe;
     }
 
     public int getNbEquipes() {
@@ -70,5 +88,83 @@ public class Tournoi extends ClasseMiroir {
         this.nbrequipes = nbrequipes;
     }
 
-    
+    public int getDureeMatch() {
+        return dureematch;
+    }
+
+    public void setDureeMatch(int dureematch) {
+        this.dureematch = dureematch;
+    }
+
+    public int getNbrEquipeMax() {
+        return nbrequipemax;
+    }
+
+    public void setNbrEquipeMax(int nbrequipemax) {
+        this.nbrequipemax = nbrequipemax;
+    }
+
+    public int getNbrEquipeMin() {
+        return nbrequipemin;
+    }
+
+    public void setNbrEquipeMin(int nbrequipemin) {
+        this.nbrequipemin = nbrequipemin;
+    }
+
+    public int getNbrRondes() {
+        return nbrrondes;
+    }
+
+    public void setNbrRondes(int nbrrondes) {
+        this.nbrrondes = nbrrondes;
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+    public int getNbrTerrains() {
+        return nbreterrains;
+    }
+
+    public void setNbrTerrains(int nbreterrains) {
+        this.nbreterrains = nbreterrains;
+    }
+
+    public boolean isOuvert() {
+        return ouvert;
+    }
+
+    public void setOuvert(boolean ouvert) {
+        this.ouvert = ouvert;
+    }
+
+    public boolean isFini() {
+        return fini;
+    }
+
+    public void setFini(boolean fini) {
+        this.fini = fini;
+    }
+
+@Override
+    public String toString() {
+        return "Tournoi{" +
+                "nom='" + nom + '\'' +
+                ", nbrjoueursparequipe=" + nbrjoueursparequipe +
+                ", nbrequipes=" + nbrequipes +
+                ", dureematch=" + dureematch +
+                ", nbrequipemax=" + nbrequipemax +
+                ", nbrequipemin=" + nbrequipemin +
+                ", nbrrondes=" + nbrrondes +
+                ", nbreterrains=" + nbreterrains +
+                ", ouvert=" + ouvert +
+                ", fini=" + fini +
+                '}';
+    }
 }
