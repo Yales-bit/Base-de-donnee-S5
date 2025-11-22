@@ -1,0 +1,117 @@
+/* ==============================================
+   THÈME: Modern Indigo (Amélioration Radicale)
+   ============================================== */
+
+html {
+    /* --- 1. PALETTE DE COULEURS RAFFINÉE --- */
+    /* Une couleur primaire Indigo moderne (#4F46E5), plus profonde et pro */
+    --lumo-primary-color-h: 245;
+    --lumo-primary-color-s: 75%;
+    --lumo-primary-color-l: 58%;
+    --lumo-primary-color: hsl(var(--lumo-primary-color-h), var(--lumo-primary-color-s), var(--lumo-primary-color-l));
+    --lumo-primary-text-color: var(--lumo-primary-color);
+    
+    /* Ajustement des variantes pour les effets (survol, etc.) */
+    --lumo-primary-color-50pct: hsla(var(--lumo-primary-color-h), var(--lumo-primary-color-s), var(--lumo-primary-color-l), 0.5);
+    --lumo-primary-color-10pct: hsla(var(--lumo-primary-color-h), var(--lumo-primary-color-s), var(--lumo-primary-color-l), 0.1);
+
+    /* Couleur d'erreur plus moderne (un rouge-rose moins agressif) */
+    --lumo-error-color: #E11D48;
+
+    /* Couleur de fond de base légèrement plus chaude que le blanc pur pour moins fatiguer les yeux */
+    --lumo-base-color: #FAFAFA; 
+
+    /* --- 2. TYPOGRAPHIE MODERNE --- */
+    /* Pile de polices optimisée pour tous les OS modernes */
+    --lumo-font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    
+    /* Des titres avec plus de caractère */
+    --lumo-header-font-weight: 700;
+
+    /* --- 3. FORMES ET ESPACES (Le "Look & Feel") --- */
+    /* Arrondis modérés : professionnels, pas "jouet" */
+    --lumo-border-radius-s: 4px;
+    --lumo-border-radius-m: 8px;  /* Standard pour les boutons/champs */
+    --lumo-border-radius-l: 12px; /* Pour les cartes/containers */
+
+    /* Espacement légèrement augmenté pour une interface plus aérée */
+    --lumo-space-m: 1rem;
+    
+    /* --- 4. OMBRES PORTÉES (Depth) --- */
+    /* Remplacement des ombres par défaut par des ombres plus douces et diffusées */
+    --lumo-box-shadow-s: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --lumo-box-shadow-m: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --lumo-box-shadow-l: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+
+/* ==============================================
+   AJUSTEMENTS SPÉCIFIQUES DES COMPOSANTS
+   ============================================== */
+
+/* --- BOUTONS --- */
+/* Bouton Primaire : Ajout d'un léger dégradé subtil et d'une meilleure ombre */
+vaadin-button[theme~="primary"] {
+    background-image: linear-gradient(to bottom right, var(--lumo-primary-color), adjust-hue(var(--lumo-primary-color), -5deg));
+    box-shadow: var(--lumo-box-shadow-s);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: all 0.2s ease-in-out;
+}
+
+vaadin-button[theme~="primary"]:hover {
+    box-shadow: var(--lumo-box-shadow-m);
+    transform: translateY(-1px); /* Léger effet de soulèvement au survol */
+}
+
+/* Boutons secondaires : plus nets */
+vaadin-button:not([theme~="primary"]) {
+     border: 1px solid var(--lumo-contrast-20pct);
+     font-weight: 600;
+}
+
+
+/* --- CHAMPS DE TEXTE (TextField, TextArea, etc.) --- */
+/* Un style plus "propre" pour les champs de saisie */
+vaadin-text-field::part(input-field),
+vaadin-text-area::part(input-field),
+vaadin-number-field::part(input-field),
+vaadin-combo-box::part(input-field) {
+    background-color: #ffffff;
+    border: 1px solid var(--lumo-contrast-20pct);
+    box-shadow: var(--lumo-box-shadow-s);
+}
+
+/* L'anneau de focus (quand on clique dedans) utilise notre belle couleur Indigo */
+vaadin-text-field[focused]::part(input-field),
+vaadin-text-area[focused]::part(input-field),
+vaadin-number-field[focused]::part(input-field),
+vaadin-combo-box[focused]::part(input-field) {
+    border-color: var(--lumo-primary-color);
+    box-shadow: 0 0 0 2px var(--lumo-primary-color-10pct);
+}
+
+
+/* --- GRILLES (Vaadin Grid) --- */
+/* Des en-têtes de grille qui ressortent mieux */
+vaadin-grid::part(header-cell) {
+    background-color: var(--lumo-contrast-5pct);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    color: var(--lumo-secondary-text-color);
+}
+
+/* Lignes de séparation plus subtiles */
+vaadin-grid::part(cell) {
+    border-bottom-color: var(--lumo-contrast-10pct);
+}
+
+
+/* --- NOTIFICATIONS --- */
+/* Ajout d'une couleur plus profonde pour les notifications */
+vaadin-notification::part(content) {
+    background-color: var(--lumo-primary-color);
+    color: var(--lumo-primary-text-color);
+}

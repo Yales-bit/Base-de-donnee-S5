@@ -11,7 +11,6 @@ import fr.insa.beuvron.utils.database.ClasseMiroir;
 
 public class Ronde extends ClasseMiroir {
 
-    private int id; // Identifiant unique de la ronde, sera potentiellement confondu avec le numéro mais jsp encore
     private int numero; // Numéro de la ronde dans le tournoi (ex: 1, 2, 3)
     private StatutRonde statut; // Statut de la ronde (voir la classe StatutRonde)
     private int idtournoi; // La ronde appartient à un tournoi 
@@ -41,14 +40,6 @@ protected Statement saveSansId(Connection con) throws SQLException {
 
     // Getters et Setters
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public int getNumero() {
         return numero;
     }
@@ -77,7 +68,6 @@ protected Statement saveSansId(Connection con) throws SQLException {
     @Override
     public String toString() {
         return "Ronde{" +
-               "id=" + id +
                ", numero=" + numero +
                ", statut=" + statut +
                ", idtournoi=" + idtournoi +

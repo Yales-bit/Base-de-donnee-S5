@@ -36,7 +36,7 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.ObjectUtils.Null;
 
 public class Tournoi extends ClasseMiroir {
-    private int id;
+    //private int id;
     private int nbrjoueursparequipe;
     private int nbrequipes;
     private int dureematch;
@@ -91,7 +91,7 @@ public class Tournoi extends ClasseMiroir {
         this.ouvert = ouvert;
         this.fini = fini;
         this.nbrequipemin = 2; 
-        this.nbrequipemax = 0; // Convention : 0 signifie "illimité"
+        this.nbrequipemax = -1; // Convention : 0 signifie "illimité"
     }
 
     // Constructeur secondaire avec id
@@ -106,7 +106,7 @@ public class Tournoi extends ClasseMiroir {
         this.ouvert = ouvert;
         this.fini = fini;
         this.nbrequipemin = 2; 
-        this.nbrequipemax = 0;
+        this.nbrequipemax = -1;
     }
 
 //SECTION METHODES
@@ -141,7 +141,13 @@ public class Tournoi extends ClasseMiroir {
             // On appelle la méthode saveInDB de l'objet (héritée de ClasseMiroir)
             T.saveInDB(con);
         } catch (SQLException ex) {
-            throw new Exception("Erreur technique lors de l'enregistrement du tournoi en base de données", ex);
+            String sqlErrorMessage = ex.getMessage();
+            if (sqlErrorMessage != null && (sqlErrorMessage.contains("Duplicate entry") || sqlErrorMessage.contains("Violation d'index unique")) && sqlErrorMessage.toLowerCase().contains("nom")) { 
+                throw new TournoiNomExisteDejaException("Un tournoi du même nom existe déjà, peut-être souhaitez-vous le modifier ?");
+            }
+            else {
+                throw new Exception("Erreur technique lors de l'enregistrement du tournoi en base de données", ex);
+            }
         }
     }
 
@@ -151,8 +157,9 @@ public class Tournoi extends ClasseMiroir {
 
 @Override
 protected Statement saveSansId(Connection con) throws SQLException {
-    PreparedStatement pst = con.prepareStatement("insert into tournoi (nbrjoueursparequipe, nbrequipes, dureematch, nbrequipemax, nbrequipemin, nbrrondes, nom, nbreterrains, ouvert, fini) \n"
+    PreparedStatement pst = con.prepareStatement("insert into Tournoi (nbrjoueursparequipe, nbrequipes, dureematch, nbrequipemax, nbrequipemin, nbrrondes, nom, nbreterrains, ouvert, fini) \n"
             + "values(?,?,?,?,?,?,?,?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
+    
     pst.setInt(1, this.nbrjoueursparequipe);
     pst.setInt(2, this.nbrequipes);
     pst.setInt(3, this.dureematch);
@@ -246,10 +253,6 @@ protected Statement saveSansId(Connection con) throws SQLException {
 
     public void setFini(boolean fini) {
         this.fini = fini;
-    }
-    
-    public int getId() {
-        return id;
     }
 
 @Override

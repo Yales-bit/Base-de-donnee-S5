@@ -35,7 +35,7 @@ public class GestionSchema {
                 // Note: J'utilise 'id' au lieu de 'idtournoi' pour simplifier et rester cohérent avec ClasseMiroir
                 st.executeUpdate("CREATE TABLE Tournoi ( "
                         + ConnectionSimpleSGBD.sqlForGeneratedKeys(con, "id") + ","
-                        + "nom VARCHAR(255) NOT NULL, "
+                        + "nom VARCHAR(255) NOT NULL UNIQUE, "
                         + "nbrjoueursparequipe INT NOT NULL, "
                         + "nbrequipes INT NOT NULL, "
                         + "dureematch INT NOT NULL, "

@@ -7,8 +7,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 @SpringBootApplication
-@Theme("default")
+@Theme("myTheme")
 public class Application extends SpringBootServletInitializer implements AppShellConfigurator {
+
 
     public static void main(String[] args) {
         // seulement si bdd h2 en memoire

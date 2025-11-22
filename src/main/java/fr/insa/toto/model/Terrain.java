@@ -13,7 +13,6 @@ import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
 
 public class Terrain extends ClasseMiroir {
 
-    private int id;
     private String nom; 
     private boolean estDisponible; 
 
@@ -51,13 +50,6 @@ public class Terrain extends ClasseMiroir {
 
 
     // Getters et Setters
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public String getNom() {
         return nom;
@@ -78,7 +70,6 @@ public class Terrain extends ClasseMiroir {
     @Override
     public String toString() {
         return "Terrain{" +
-               "id=" + id +
                ", nom='" + nom + '\'' +
                ", estDisponible=" + estDisponible +
                '}';

@@ -8,7 +8,6 @@ import java.sql.Statement;
 
 public class Match extends ClasseMiroir {
 
-    private int id;
     private Ronde ronde;
     private Equipe equipe1;
     private Equipe equipe2;
@@ -35,8 +34,6 @@ protected Statement saveSansId(Connection con) throws SQLException {
     return pst;
 }
     // Getters et Setters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
 
     public Ronde getRonde() { return ronde; }
     public void setRonde(Ronde ronde) { this.ronde = ronde; }
