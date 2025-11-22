@@ -71,10 +71,10 @@ public class GestionSchema {
                         + " id integer not null,"
                         + " idterrain integer not null,"
                         + " statut varchar(30) not null, "
-                        + " FOREIGN KEY (id_ronde) REFERENCES Rondes(id),"
-                        + " FOREIGN KEY (id_equipe1) REFERENCES Equipes(id),"
-                        + " FOREIGN KEY (id_equipe2) REFERENCES Equipes(id)"
-                        + " FOREIGN KEY (idterrain) REFERENCES Terrains(id)"
+                        + " FOREIGN KEY (id_ronde) REFERENCES Ronde(id),"
+                        + " FOREIGN KEY (id_equipe1) REFERENCES Equipe(id),"
+                        + " FOREIGN KEY (id_equipe2) REFERENCES Equipe(id)"
+                        + " FOREIGN KEY (idterrain) REFERENCES Terrain(id)"
                         + ") "
                 );
                 st.executeUpdate("create table Ronde ( "
@@ -82,7 +82,7 @@ public class GestionSchema {
                         + " numero integer not null,"
                         + " statut varchar(30) not null,"
                         + " idtournoi integer not null,"
-                        + " FOREIGN KEY (idtournoi) REFERENCES Tournois(idtournoi)" // Ajout de la contrainte de clé étrangère
+                        + " FOREIGN KEY (idtournoi) REFERENCES Tournoi(idtournoi)" // Ajout de la contrainte de clé étrangère
                         + ") "
                 );
 
@@ -95,8 +95,8 @@ public class GestionSchema {
                 st.executeUpdate("create table Composition ( "
                         + " idequipe integer not null,"
                         + " idjoueur integer not null"   
-                        + " FOREIGN KEY (idequipe) REFERENCES Equipes(id),"
-                        + " FOREIGN KEY (idjoueur) REFERENCES Joueurs(id)"                  
+                        + " FOREIGN KEY (idequipe) REFERENCES Equipe(id),"
+                        + " FOREIGN KEY (idjoueur) REFERENCES Joueur(id)"                  
                         + ") "
                 );
 

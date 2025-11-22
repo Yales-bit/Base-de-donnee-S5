@@ -1,6 +1,12 @@
 package fr.insa.toto.model;
 
-public class Match {
+import fr.insa.beuvron.utils.database.ClasseMiroir;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class Match extends ClasseMiroir {
     public Match() {
         // Constructeur par défaut
     }
