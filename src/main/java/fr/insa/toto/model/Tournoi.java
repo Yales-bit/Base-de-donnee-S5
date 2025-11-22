@@ -24,6 +24,7 @@ package fr.insa.toto.model;
  */
 
 import fr.insa.beuvron.utils.database.ClasseMiroir;
+import fr.insa.beuvron.utils.database.ConnectionPool;
 import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -136,7 +137,7 @@ public class Tournoi extends ClasseMiroir {
         }
 
         // --- SAUVEGARDE EN BASE DE DONNÉES ---
-        try (Connection con = ConnectionSimpleSGBD.defaultCon()) {
+        try (Connection con = ConnectionPool.getConnection()) {
             // On appelle la méthode saveInDB de l'objet (héritée de ClasseMiroir)
             T.saveInDB(con);
         } catch (SQLException ex) {

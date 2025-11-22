@@ -21,3 +21,5 @@ Quelques choses qu'on avait mal faites et auxquelles il faut faire attention, et
     -Point syntaxe : Les classes du modèle sont nommées : "Objet" et la table associée est nommée "Objets", faut faire attention ça peut être la source de bcp d'erreurs. De manière générale essayons de faire simple quant aux nom de variables/méthodes/classes et de garder les mêmes formats.
 
     -La table composition sert à associer équipes et joueurs, à partir d'un SELCT IDEQUIPE on sait direct quels joueurs en font partie, de la même manière, avec un SELECT IDEQUIPE, on a la liste des joueurs qui la composent, ce qui sera pratique quand on voudra faire une page type "Détails du match".
+
+    -Attention à bien utiliser ConnectionPool et pas ConnectionSimple pour les tâches qui vont être répétées plusieurs fois (quasiment toutes sauf les tâches d'initialisation)
