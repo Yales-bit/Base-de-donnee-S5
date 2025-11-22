@@ -32,8 +32,10 @@ import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.ObjectUtils.Null;
+
 public class Tournoi extends ClasseMiroir {
-    
+    private int id;
     private int nbrjoueursparequipe;
     private int nbrequipes;
     private int dureematch;
@@ -45,8 +47,9 @@ public class Tournoi extends ClasseMiroir {
     private boolean ouvert = false;
     private boolean fini = false;
 
-    //constructeur maximal (avec tous les attributs)
+    //constructeur maximal (avec tous les attributs), sans id
     public Tournoi(int nbrjoueursparequipe, int nbrequipes, int dureematch, int nbrequipemax, int nbrequipemin, int nbrrondes, String nom, int nbreterrains, boolean ouvert, boolean fini) {
+        super();
         this.nbrjoueursparequipe = nbrjoueursparequipe;
         this.nbrequipes = nbrequipes;
         this.dureematch = dureematch;
@@ -59,9 +62,25 @@ public class Tournoi extends ClasseMiroir {
         this.fini = fini;
 
     }
+// SECOND CONSTRUCTEURS
+    // Constructeur maximal avec id
+    public Tournoi(int id, int nbrjoueursparequipe, int nbrequipes, int dureematch, int nbrequipemax, int nbrequipemin, int nbrrondes, String nom, int nbreterrains, boolean ouvert, boolean fini) {
+        super(id);
+        this.nbrjoueursparequipe = nbrjoueursparequipe;
+        this.nbrequipes = nbrequipes;
+        this.dureematch = dureematch;
+        this.nbrequipemax = nbrequipemax;
+        this.nbrequipemin = nbrequipemin;
+        this.nbrrondes = nbrrondes;
+        this.nom = nom;
+        this.nbreterrains = nbreterrains;
+        this.ouvert = ouvert;
+        this.fini = fini;
+    }
     
-    //constructeur secondaire (sans spécification du nombre max/min d'équipes)
+    //constructeur secondaire (sans spécification du nombre max/min d'équipes), sans id
     public Tournoi(int nbrjoueursparequipe, int nbrequipes, int dureematch, int nbrrondes, String nom, int nbreterrains, boolean ouvert, boolean fini) {
+        super();
         this.nbrjoueursparequipe = nbrjoueursparequipe;
         this.nbrequipes = nbrequipes;
         this.dureematch = dureematch;
@@ -70,12 +89,64 @@ public class Tournoi extends ClasseMiroir {
         this.nbreterrains = nbreterrains;
         this.ouvert = ouvert;
         this.fini = fini;
+        this.nbrequipemin = 2; 
+        this.nbrequipemax = 0; // Convention : 0 signifie "illimité"
     }
 
-    public static void addTournoi (Tournoi T){
-
-
+    // Constructeur secondaire avec id
+    public Tournoi(int id, int nbrjoueursparequipe, int nbrequipes, int dureematch, int nbrrondes, String nom, int nbreterrains, boolean ouvert, boolean fini) {
+        super(id);
+        this.nbrjoueursparequipe = nbrjoueursparequipe;
+        this.nbrequipes = nbrequipes;
+        this.dureematch = dureematch;
+        this.nbrrondes = nbrrondes;
+        this.nom = nom;
+        this.nbreterrains = nbreterrains;
+        this.ouvert = ouvert;
+        this.fini = fini;
+        this.nbrequipemin = 2; 
+        this.nbrequipemax = 0;
     }
+
+//SECTION METHODES
+    public static void creerTournoi (Tournoi T) throws Exception{
+        if (T.getNom() == null || T.getNom().isEmpty()){ 
+            throw new Exception("Le nom du tournoi est obligatoire");
+        }
+        if (T.getNbEquipes()<2){
+            throw new Exception("Le tournoi doit avoir au moins 2 equipes");
+        }
+        if (T.getDureeMatch()<=0){
+            throw new Exception("La duree du match doit etre positive");
+        }
+        if (T.getNbrJoueursParEquipe() <= 0) {
+            throw new Exception("Il doit y avoir au moins 1 joueur par équipe");
+        }
+        if (T.getNbrRondes() <= 0) {
+            throw new Exception("Le tournoi doit comporter au moins une ronde");
+        }
+        if (T.getNbrTerrains() <= 0) {
+            throw new Exception("Il faut définir au moins un terrain disponible");
+        }
+        if (T.getNbrEquipeMin() < 2) {
+             throw new Exception("Le seuil minimum d'équipes ne peut pas être inférieur à 2");
+        }
+        if (T.getNbrEquipeMax() > 0 && T.getNbrEquipeMax() < T.getNbrEquipeMin()) {
+             throw new Exception("Le nombre maximum d'équipes ne peut pas être inférieur au minimum requis");
+        }
+
+        // --- SAUVEGARDE EN BASE DE DONNÉES ---
+        try (Connection con = ConnectionSimpleSGBD.defaultCon()) {
+            // On appelle la méthode saveInDB de l'objet (héritée de ClasseMiroir)
+            T.saveInDB(con);
+        } catch (SQLException ex) {
+            throw new Exception("Erreur technique lors de l'enregistrement du tournoi en base de données", ex);
+        }
+    }
+
+
+
+
 
 @Override
 protected Statement saveSansId(Connection con) throws SQLException {
@@ -174,6 +245,10 @@ protected Statement saveSansId(Connection con) throws SQLException {
 
     public void setFini(boolean fini) {
         this.fini = fini;
+    }
+    
+    public int getId() {
+        return id;
     }
 
 @Override

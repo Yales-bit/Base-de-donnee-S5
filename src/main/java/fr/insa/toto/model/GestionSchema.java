@@ -68,12 +68,16 @@ public class GestionSchema {
                 );
                 st.executeUpdate("create table Matchs ( "
                         + " id integer not null,"
-                        + " idloisir integer not null,"
-                        + " statut integer not null "
+                        + " idterrain integer not null,"
+                        + " statut varchar(30) not null, "
+                        + " FOREIGN KEY (id_ronde) REFERENCES Rondes(id),"
+                        + " FOREIGN KEY (id_equipe1) REFERENCES Equipes(id),"
+                        + " FOREIGN KEY (id_equipe2) REFERENCES Equipes(id)"
+                        + " FOREIGN KEY (idterrain) REFERENCES Terrains(id)"
                         + ") "
                 );
                 st.executeUpdate("create table Rondes ( "
-                        + "id integer not null unique,"
+                        + " id integer not null unique,"
                         + " numero integer not null,"
                         + " statut varchar(30) not null,"
                         + " idtournoi integer not null,"
@@ -85,18 +89,17 @@ public class GestionSchema {
                         + " id integer not null,"
                         + " nom varchar(30) not null,"
                         + " score integer not null, "
-                        + " idmatch integer not null "
                         + ") "
                 );
                 st.executeUpdate("create table Composition ( "
                         + " idequipe integer not null,"
-                        + " idjoueur integer not null"                     
+                        + " idjoueur integer not null"   
+                        + " FOREIGN KEY (idequipe) REFERENCES Equipes(id),"
+                        + " FOREIGN KEY (idjoueur) REFERENCES Joueurs(id)"                  
                         + ") "
                 );
 
                 
-                
-
                 con.commit();
             }
         } catch (SQLException ex) {

@@ -16,7 +16,7 @@ public class Match {
         this.equipe1 = equipe1;
         this.equipe2 = equipe2;
         this.terrain = terrain;
-        this.statut = StatutMatch.EN_COURS; // Par défaut, un nouveau match est "en cours"
+        this.statut = StatutMatch.EN_ATTENTE; // Par défaut, un nouveau match est "en cours"
     }
     // Getters et Setters
     public Long getId() { return id; }

@@ -11,23 +11,23 @@ public class Equipe extends ClasseMiroir {
     private int idequipe;
     private String nom;
     private int score;
-    private int idtournoi;
+    private int idronde;
     
 
     // //Constructeur utilisé quand on ne connait pas encore l'id de l'équipe (elle vient d'être créée)
-    public Equipe(String nom, int score, int idtournoi) {
+    public Equipe(String nom, int score, int idronde) {
         super(); // associe -1 comme id
         this.nom = nom;
         this.score = score;
-        this.idtournoi = idtournoi;
+        this.idronde = idronde;
     }
 
     // Constructeur utilisé quand on connait l'id de l'équipe
-    public Equipe(int idequipe, String nom, int score, int idtournoi) {
+    public Equipe(int idequipe, String nom, int score, int idronde) {
         super(idequipe);
         this.nom = nom;
         this.score = score;
-        this.idtournoi = idtournoi;
+        this.idronde = idronde;
     }
 
     @Override
@@ -36,7 +36,7 @@ public class Equipe extends ClasseMiroir {
                 + "values(?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
         pst.setString(1, this.nom);
         pst.setInt(2, this.score);
-        pst.setInt(3, this.idtournoi);
+        pst.setInt(3, this.idronde);
         pst.executeUpdate();
         return pst;
 
@@ -59,11 +59,11 @@ public class Equipe extends ClasseMiroir {
         this.score = score;
     }
     
-    public int getIdTournoi() {
-        return idtournoi;
+    public int getidronde() {
+        return idronde;
     }
 
-    public void setIdTournoi(int idtournoi) {
-        this.idtournoi = idtournoi;
+    public void setidronde(int idronde) {
+        this.idronde = idronde;
     }
 }   
