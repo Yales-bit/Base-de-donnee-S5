@@ -8,18 +8,22 @@ Remplace l'UML incomplet :
 
 Ces dépendances fixent l'ordre dans lequel on peut définir les objets.
 
-Quelques choses qu'on avait mal faites et auxquelles il faut faire attention, et d'autres remarques : 
-    - Les classes de model doivent extend ClasseMirroir et donc implémenter savesansid, mais on avait juste copier coller le savesansid de la classe joueur alors qu'il doit être override dans chaque classe pour l'adapter au attributs à save dans cette dernière.
+Quelques choses qu'on avait mal fait et auxquelles il faut faire attention, et d'autres remarques : 
+    - Les classes de model doivent extend ClasseMirroir et donc implémenter savesansid, mais on avait juste copier coller le savesansid de la classe joueur alors qu'il doit être override dans chaque classe pour l'adapter aux attributs à save dans cette dernière.
 
-    - Chaque classe doit avoir deux constructeurs : le premier qui ne prend pas d'id en attribut, c'est celui qu'on utilisera à la première création d'un objet, avant qu'il ne soit enregistré dans la BDD, parce que mysql ne lui a pas encore attribué d'id. Le second lui, prend bien un id en paramètre, c'est celui qu'on utilisera quand on devra créer un objet à partir d'une ligne récupérée dans la BDD, objet auquel la mysql aura attribué un id puisque sauvegardé dans la BDD. 
-    Le premier type de constructeur a en première ligne "super()", le deuxième a "super(id)" c'est dû au fait que toutes nos classes modèles héritent de ClasseMirroir qui est responsable de la gestion de l'identifiant. L'appel super() demande à cette classe mère d'initialiser l'objet avec un état "non sauvegardé" (en fixant son ID interne à une valeur témoin comme -1), tandis que l'appel super(id) lui transmet l'ID réel provenant de la base de données pour qu'elle le stocke. Pour bien comprendre ça voir ClasseMirroir.
+    - Chaque classe doit avoir deux constructeurs : le premier qui ne prend pas d'id en attribut, c'est celui qu'on utilisera à la première création 
+    d'un objet, avant qu'il ne soit enregistré dans la BDD, parce que mysql ne lui a pas encore attribué d'id. 
+    Le second lui, prend bien un id en paramètre, c'est celui qu'on utilisera quand on devra créer un objet à partir d'une ligne récupérée dans la BDD, objet auquel la mysql aura attribué un id puisque sauvegardé dans la BDD. 
+    Le premier type de constructeur a en première ligne "super()", le deuxième a "super(id)" c'est dû au fait que toutes nos classes modèles héritent de ClasseMirroir qui est responsable de la gestion de l'identifiant.
+    Lorsque l'on crée un objet, L'appel super() demande à cette classe mère d'initialiser l'objet avec un état "non sauvegardé" (en fixant son ID interne à une valeur témoin comme -1), tandis que l'appel super(id) lui transmet l'ID réel provenant de la base de données pour qu'elle le stocke.
+    Pour bien comprendre ça voir ClasseMirroir.
 
-    - Eventuellement, les classes oeuvent avoir plus de deux constructeurs en fonction de ce qu'on compte en faire (comme Tournoi, qui a des constructeurs avec certains paramètres en plus ou en moins)
+    - Eventuellement, les classes peuvent avoir plus de deux constructeurs en fonction de ce qu'on compte en faire (comme Tournoi, qui a des constructeurs avec certains paramètres en plus ou en moins)
 
     - Les commandes SQL envoyées par GestionSchema doivent bien créer des tables avec les bons attribus, correspondant bien aux objets concernés. Donc si on change les attributs d'une classe, il faut bien faire gaffe à CHANGER les colonnes de sa table dans GestionSchema.
 
-    -Point syntaxe : Les classes du modèle sont nommées : "Objet" et la table associée est nommée "Objets", faut faire attention ça peut être la source de bcp d'erreurs. De manière générale essayons de faire simple quant aux nom de variables/méthodes/classes et de garder les mêmes formats.
+    - Point syntaxe : Les classes du modèle sont nommées : "Objet" et la table associée est nommée "Objets", faut faire attention ça peut être la source de bcp d'erreurs. De manière générale essayons de faire simple quant aux nom de variables/méthodes/classes et de garder les mêmes formats.
 
-    -La table composition sert à associer équipes et joueurs, à partir d'un SELCT IDEQUIPE on sait direct quels joueurs en font partie, de la même manière, avec un SELECT IDEQUIPE, on a la liste des joueurs qui la composent, ce qui sera pratique quand on voudra faire une page type "Détails du match".
+    - La table composition sert à associer équipes et joueurs, à partir d'un SELECT IDEQUIPE on sait direct quels joueurs en font partie, de la même manière, avec un SELECT IDEQUIPE, on a la liste des joueurs qui la composent, ce qui sera pratique quand on voudra faire une page type "Détails du match".
 
-    -Attention à bien utiliser ConnectionPool et pas ConnectionSimple pour les tâches qui vont être répétées plusieurs fois (quasiment toutes sauf les tâches d'initialisation)
+    - Attention à bien utiliser ConnectionPool et pas ConnectionSimple pour les tâches qui vont être répétées plusieurs fois (quasiment toutes sauf les tâches d'initialisation)

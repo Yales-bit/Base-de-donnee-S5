@@ -18,10 +18,11 @@ along with CoursBeuvron.  If not, see <http://www.gnu.org/licenses/>.
  */
 package fr.insa.toto.model;
 
-import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
 
 /**
  *
@@ -40,14 +41,14 @@ public class GestionSchema {
             con.setAutoCommit(false);
             try (Statement st = con.createStatement()) {
                 // creation des tables
-                st.executeUpdate("create table Joueurs ( "
+                st.executeUpdate("create table joueur ( "
                         + ConnectionSimpleSGBD.sqlForGeneratedKeys(con, "id") + ","
                         + " surnom varchar(30) not null unique,"
                         + " taille integer,"                   
                         + " sexe varchar(15) not null "
                         + ") "
                 );
-                st.executeUpdate("CREATE TABLE Tournois ( "
+                st.executeUpdate("CREATE TABLE tournoi ( "
                         + "idtournoi INTEGER NOT NULL UNIQUE, "
                         + "nom VARCHAR(255) NOT NULL, "
                         + "nbrjoueursparequipe INT NOT NULL, "
@@ -61,12 +62,12 @@ public class GestionSchema {
                         + "fini BOOLEAN DEFAULT FALSE "
                         + ")");
 
-                st.executeUpdate("create table Terrains ( "            
+                st.executeUpdate("create table Terrain ( "            
                         + "id integer,"
                         + " description text"
                         + ") "
                 );
-                st.executeUpdate("create table Matchs ( "
+                st.executeUpdate("create table Match ( "
                         + " id integer not null,"
                         + " idterrain integer not null,"
                         + " statut varchar(30) not null, "
@@ -76,7 +77,7 @@ public class GestionSchema {
                         + " FOREIGN KEY (idterrain) REFERENCES Terrains(id)"
                         + ") "
                 );
-                st.executeUpdate("create table Rondes ( "
+                st.executeUpdate("create table Ronde ( "
                         + " id integer not null unique,"
                         + " numero integer not null,"
                         + " statut varchar(30) not null,"
@@ -85,10 +86,10 @@ public class GestionSchema {
                         + ") "
                 );
 
-                st.executeUpdate("create table Equipes ( "
+                st.executeUpdate("create table Equipe ( "
                         + " id integer not null,"
                         + " nom varchar(30) not null,"
-                        + " score integer not null, "
+                        + " score integer not null "
                         + ") "
                 );
                 st.executeUpdate("create table Composition ( "
@@ -118,19 +119,19 @@ public class GestionSchema {
     public static void deleteSchema(Connection con) throws SQLException {
         try (Statement st = con.createStatement()) {
             try {
-                st.executeUpdate("drop table Joueurs");
+                st.executeUpdate("drop table Joueur");
             } catch (SQLException ex) {
             }
             try {
-                st.executeUpdate("drop table Terrains");
+                st.executeUpdate("drop table Terrain");
             } catch (SQLException ex) {
             }
             try {
-                st.executeUpdate("drop table Matchs");
+                st.executeUpdate("drop table Match");
             } catch (SQLException ex) {
             }
             try {
-                st.executeUpdate("drop table Equipes");
+                st.executeUpdate("drop table Equipe");
             } catch (SQLException ex) {
             }
             try {
@@ -138,7 +139,7 @@ public class GestionSchema {
             } catch (SQLException ex) {
             }
             try {
-                st.executeUpdate("drop table Tournois");
+                st.executeUpdate("drop table Tournoi");
             } catch (SQLException ex) {
             }
         }
