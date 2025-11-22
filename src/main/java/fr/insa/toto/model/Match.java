@@ -7,10 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class Match extends ClasseMiroir {
-    public Match() {
-        // Constructeur par défaut
-    }
-    private Long id;
+
+    private int id;
     private Ronde ronde;
     private Equipe equipe1;
     private Equipe equipe2;
@@ -24,9 +22,21 @@ public class Match extends ClasseMiroir {
         this.terrain = terrain;
         this.statut = StatutMatch.EN_ATTENTE; // Par défaut, un nouveau match est "en cours"
     }
+
+    @Override
+protected Statement saveSansId(Connection con) throws SQLException {
+    PreparedStatement pst = con.prepareStatement("INSERT INTO Match (idronde, idequipe1, idequipe2, idterrain, statut) VALUES (?, ?, ?, ?, ?)");
+    pst.setInt(1, this.ronde.getId());
+    pst.setInt(2, this.equipe1.getId());
+    pst.setInt(3, this.equipe2.getId());
+    pst.setInt(4, this.terrain.getId());
+    pst.setString(5, this.statut.toString());
+    pst.executeUpdate();
+    return pst;
+}
     // Getters et Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
     public Ronde getRonde() { return ronde; }
     public void setRonde(Ronde ronde) { this.ronde = ronde; }
