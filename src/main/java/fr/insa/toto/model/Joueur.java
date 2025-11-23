@@ -22,13 +22,20 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import fr.insa.toto.model.StatutSexe;
+import java.util.ArrayList;
+import java.util.List;
+import java.sql.ResultSet;
+
+import org.hibernate.annotations.processing.SQL;
 
 import fr.insa.beuvron.utils.database.ClasseMiroir;
+import fr.insa.beuvron.utils.database.ConnectionPool;
 import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
 
 
 public class Joueur extends ClasseMiroir {
-
+    private int scoretotal;
     private String surnom;
     private StatutSexe sexe;
     private int taille;
@@ -39,6 +46,7 @@ public class Joueur extends ClasseMiroir {
         this.surnom = surnom;
         this.sexe = sexe;
         this.taille = taille;
+        this.scoretotal = 0;
     }
 
     //Constructeur utilisé quand on connait l'id du joueur (il vient d'avoir son id attribué)
@@ -47,18 +55,105 @@ public class Joueur extends ClasseMiroir {
         this.surnom = surnom;
         this.sexe = sexe;
         this.taille = taille;
+        this.scoretotal = 0;
     }
-    @Override
+
+    //Constructeur avec score total
+    public Joueur(int id, String surnom, StatutSexe sexe, int taille, int scoretotal) {
+        super(id);
+        this.surnom = surnom;
+        this.sexe = sexe;
+        this.taille = taille;
+        this.scoretotal = scoretotal;
+    }
+
+    public static void creerJoueur(Joueur J) throws SQLException {
+        if (J.getSurnom() == null || J.getSurnom().isEmpty()) {
+            throw new SQLException("Le surnom est obligatoire");
+        }
+        if (J.getTaille() <= 100) {
+            throw new SQLException("La taille (en cm) doit etre supérieure à 100 cm");
+        }
+        if (J.getSexe().isEmpty()) {
+            throw new SQLException("Le sexe est obligatoire");
+        }
+        try (Connection con = ConnectionPool.getConnection()) {
+            J.saveInDB(con);
+        }
+        catch (Exception e) {
+            String sqlErrorMessage = e.getMessage();
+            if (sqlErrorMessage != null && (sqlErrorMessage.contains("Duplicate entry") || sqlErrorMessage.contains("Violation d'index unique")) && sqlErrorMessage.toLowerCase().contains("surnom")) {
+                throw new SQLException("Le joueur "+J.getSurnom()+" existe deja"); //Par la suite ajouter une option permettant de modifier le joueur
+            }
+        }
+
+        
+    }
+
+    public void ajouterPoints(int points) { this.scoretotal += points; }
+    public void update(Connection con) throws SQLException, Exception {
+        if (this.getId() == -1) {
+            throw new Exception("Impossible de mettre à jour ce joueur : il n'a pas encore été sauvegardé en base de données (son ID est -1). Utilisez saveInDB() d'abord.");
+        }
+        String query = "UPDATE Joueur SET surnom = ?, taille = ?, sexe = ?, scoretotal = ? WHERE id = ?";
+        try (PreparedStatement pst = con.prepareStatement(query)) {
+            pst.setString(1, this.surnom);
+            pst.setInt(2, this.taille);
+            pst.setString(3, this.sexe.toString());
+            pst.setInt(4, this.scoretotal);
+            // Le dernier paramètre est l'ID pour le WHERE
+            pst.setInt(5, this.getId());
+
+            // Exécution
+            int rowsAffected = pst.executeUpdate();
+            // (Optionnel) Vérification de sécurité
+            if (rowsAffected == 0) {
+                throw new Exception("Erreur : L'ID " + this.getId() + " n'a pas été trouvé en base de données. Aucune mise à jour effectuée.");
+            }
+        }
+    }
+    public static List<Joueur> getClassementGeneral() throws Exception {
+        List<Joueur> classement = new ArrayList<>();
+        String query = "SELECT * FROM Joueur ORDER BY scoretotal DESC";
+        try (Connection con = ConnectionPool.getConnection();
+            PreparedStatement pst = con.prepareStatement(query);
+            ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String surnom = rs.getString("surnom");
+                StatutSexe sexe = StatutSexe.valueOf(rs.getString("sexe"));
+                int taille = rs.getInt("taille");
+                int scoretotal = rs.getInt("scoretotal");
+                Joueur j = new Joueur(id, surnom, sexe, taille, scoretotal);
+                classement.add(j);
+            }
+            }
+            catch (IllegalArgumentException e) {
+            // Erreur spécifique si la valeur du sexe en BDD ne correspond pas à l'Enum
+                throw new Exception("Erreur de données en base : statut de sexe inconnu.");
+            } catch (SQLException e) {
+                throw new Exception("Erreur technique lors de la récupération du classement.", e);
+            }
+            return classement;
+}
+
+
+
+            @Override
     protected Statement saveSansId(Connection con) throws SQLException {
-        PreparedStatement pst = con.prepareStatement("insert into joueur (surnom, categorie, taille) \n"
+        PreparedStatement pst = con.prepareStatement("insert into Joueur (surnom, sexe, taille, scoretotal ) \n"
                 + "values(?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
         pst.setString(1, this.surnom);
         pst.setString(2, this.sexe.toString());
         pst.setInt(3, this.taille);
+        pst.setInt(4, this.scoretotal); 
         pst.executeUpdate();
         return pst;
 
     }
+
+    
+
 
     /*public static void main(String[] args) {
         try {
@@ -106,6 +201,12 @@ public class Joueur extends ClasseMiroir {
      */
     public void setTaille(int taille) {
         this.taille = taille;
+    }
+    public int getScoretotal() {
+        return scoretotal;
+    }
+    public void setScoretotal(int scoretotal) {
+        this.scoretotal = scoretotal;
     }
   
  //test commit Hack   

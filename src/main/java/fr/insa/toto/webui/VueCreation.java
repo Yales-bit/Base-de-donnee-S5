@@ -65,6 +65,15 @@ public class VueCreation extends VerticalLayout {
         });
         
         Button bAnnuler = new Button("Annuler");
+        bAnnuler.addClickListener(event ->{
+            tfNom.clear();
+            tfDate.clear();
+            tfNbRondes.clear();
+            tfNbrEquipes.clear();
+            tfNbrJoueurs.clear();
+            tfNbrTerrains.clear();
+            tfDuree.clear();
+        });
         HorizontalLayout hLayout = new HorizontalLayout(bValider, bAnnuler);
 
         this.add(titrePage, tfNom, tfDate, tfDuree, tfNbRondes, tfNbrEquipes, tfNbrJoueurs, tfNbrTerrains, hLayout);

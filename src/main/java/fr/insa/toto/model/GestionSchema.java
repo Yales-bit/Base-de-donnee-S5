@@ -27,7 +27,8 @@ public class GestionSchema {
                         + ConnectionSimpleSGBD.sqlForGeneratedKeys(con, "id") + ","
                         + " surnom varchar(30) not null unique,"
                         + " taille integer,"
-                        + " sexe varchar(15) not null "
+                        + " sexe varchar(15) not null, "
+                        + " scoretotal integer not null default 0"
                         + ") "
                 );
 
@@ -72,7 +73,7 @@ public class GestionSchema {
                 st.executeUpdate("create table Equipe ( "
                         + ConnectionSimpleSGBD.sqlForGeneratedKeys(con, "id") + ","
                         + " nom varchar(30) not null,"
-                        + " score integer not null "
+                        + " score integer not null, "
                         + " idronde integer not null,"
                         + " FOREIGN KEY (idronde) REFERENCES Ronde(id)"
                         + ") "
@@ -122,7 +123,7 @@ public class GestionSchema {
             try { st.executeUpdate("drop table Composition"); } catch (SQLException ex) { System.out.println("Info: Table Composition non supprimée"); }
             try { st.executeUpdate("drop table Matchs"); } catch (SQLException ex) { System.out.println("Info: Table Matchs non supprimée"); } // Nom au pluriel
             try { st.executeUpdate("drop table Ronde"); } catch (SQLException ex) { System.out.println("Info: Table Ronde non supprimée"); }
-
+            try { st.executeUpdate("drop table Points"); } catch (SQLException ex) { System.out.println("Info: Table Points non supprimée"); }
             // Suppression des mères ensuite
             try { st.executeUpdate("drop table Equipe"); } catch (SQLException ex) { System.out.println("Info: Table Equipe non supprimée"); }
             try { st.executeUpdate("drop table Terrain"); } catch (SQLException ex) { System.out.println("Info: Table Terrain non supprimée"); }
