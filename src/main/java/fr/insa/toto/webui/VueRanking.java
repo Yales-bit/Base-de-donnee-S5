@@ -21,6 +21,8 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import java.util.List;
+import com.vaadin.flow.data.renderer.LitRenderer;
+
 
 
 import fr.insa.beuvron.utils.database.ConnectionPool;
@@ -49,10 +51,8 @@ public class VueRanking extends VerticalLayout {
 
     private void configureGrid() {
         this.grid = new Grid<>(Joueur.class, false); // 'false' pour ne pas créer les colonnes automatiquement
-        grid.addColumn(joueur -> {
-        List<Joueur> items = grid.getDataProvider().fetch(new com.vaadin.flow.data.provider.Query<>()).toList();
-        return items.indexOf(joueur) + 1;
-        }).setHeader("#").setWidth("60px").setFlexGrow(0); // Petite colonne fixe
+        grid.addColumn(LitRenderer.<Joueur>of("${index + 1}"))
+        .setHeader("#").setWidth("60px").setFlexGrow(0); // Petite colonne fixe
         grid.addColumn(Joueur::getSurnom).setHeader("Surnom");
         grid.addColumn(Joueur::getTaille).setHeader("Taille (cm)");
         grid.addColumn(Joueur::getSexe).setHeader("Sexe");
