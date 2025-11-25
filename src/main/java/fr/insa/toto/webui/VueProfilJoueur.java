@@ -28,6 +28,13 @@ public class VueProfilJoueur extends VerticalLayout implements HasUrlParameter<I
     private H1 surnomHeader = new H1();
     private Span infoSexe = new Span();
     private Span infoTaille = new Span();
+    private Span infoNom = new Span();
+    private Span infoPrenom = new Span();
+    private Span infoJour = new Span();
+    private Span infoMois = new Span();
+    private Span infoAnnee = new Span();
+    private Span infoDate = new Span();
+
     
     public VueProfilJoueur() {
         // Mise en page de base
@@ -38,7 +45,7 @@ public class VueProfilJoueur extends VerticalLayout implements HasUrlParameter<I
             getUI().ifPresent(ui -> ui.navigate("recherche"))
         );
 
-        add(btnRetour, surnomHeader, new H3("Informations"), infoSexe, infoTaille);
+        add(btnRetour, surnomHeader, new H3("Informations"),infoNom, infoPrenom, infoSexe, infoJour, infoMois, infoAnnee, infoTaille, infoDate);
     }
 
     // Cette méthode est appelée automatiquement par Vaadin quand on arrive sur la page
@@ -59,8 +66,13 @@ public class VueProfilJoueur extends VerticalLayout implements HasUrlParameter<I
 
     private void afficherJoueur(Joueur j) {
         surnomHeader.setText(j.getSurnom());
+        
         infoSexe.setText("Sexe : " + (j.getSexe() != null ? j.getSexe().toString() : "?"));
         infoTaille.setText("Taille : " + j.getTaille() + " cm");
+        infoNom.setText("Nom : " + j.getNom());
+        infoPrenom.setText("Prénom : " + j.getPrenom());
+        infoDate.setText("Date de naissance : " + j.getJour() + "/" + j.getMois() + "/" + j.getAnnee());
+        
         
         // Tu pourras ajouter ici l'historique des matchs plus tard !
     }

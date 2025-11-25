@@ -160,47 +160,19 @@ public class Joueur extends ClasseMiroir {
                 String surnom = rs.getString("surnom");
                 String catStr = rs.getString("sexe");
                 int taille = rs.getInt("taille");
-                int score = rs.getInt("scoretotal");
+                
 
                 StatutSexe sexe = null;
                 try {
                     if(catStr != null) sexe = StatutSexe.valueOf(catStr);
                 } catch (IllegalArgumentException e) { sexe = StatutSexe.MASCULIN; }
 
-                resultats.add(new Joueur(id, surnom, sexe, taille, score));
+                resultats.add(new Joueur(id, surnom, sexe, taille));
             }
         }
         return resultats;
     }
 
-
-
-    public Joueur rechercherParSurnom2(String recherche) throws SQLException {
-    try (Connection con = ConnectionPool.getConnection()) {
-        // CORRECTION 1 : Utilisation de LIKE pour les recherches partielles
-        PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur WHERE surnom LIKE ?");
-        pst.setString(1, "%" + recherche + "%");
-        
-        ResultSet rs = pst.executeQuery();
-        if (rs.next()) {
-            int id = rs.getInt("id");
-            // CORRECTION 2 : On récupère le VRAI surnom de la base, pas le texte de recherche
-            String surnomReel = rs.getString("surnom"); 
-            String catStr = rs.getString("categorie");
-            int taille = rs.getInt("taille");
-            
-            StatutSexe sexe = null;
-            try {
-                if(catStr != null) sexe = StatutSexe.valueOf(catStr);
-            } catch (IllegalArgumentException e) {
-                sexe = StatutSexe.MASCULIN;
-            }
-            // On retourne le joueur avec son vrai nom
-            return new Joueur(id, surnomReel, sexe, taille);
-        }
-        }
-        return null; // Aucun résultat trouvé
-    }
 
 
     // 1. Méthode pour récupérer un joueur unique par son ID
@@ -214,7 +186,11 @@ public class Joueur extends ClasseMiroir {
                 String surnom = rs.getString("surnom");
                 String catStr = rs.getString("sexe");
                 int taille = rs.getInt("taille");
-                int score = rs.getInt("scoretotal");
+                String prenom = rs.getString("prenom");
+                String nom = rs.getString("nom"); 
+                int mois = rs.getInt("mois");
+                int jour = rs.getInt("jour");
+                int annee = rs.getInt("annee");
                 
                 // Gestion sécurisée de l'enum (si null ou invalide)
                 StatutSexe sexe = null;
@@ -224,7 +200,7 @@ public class Joueur extends ClasseMiroir {
                     sexe = StatutSexe.MASCULIN; // Valeur par défaut si erreur
                 }
 
-                return new Joueur(id, surnom, sexe, taille, score);
+                return new Joueur(id, surnom, sexe, taille, prenom, nom, mois, jour, annee);
             }
         }
         return null; // Pas trouvé
