@@ -18,6 +18,8 @@ along with CoursBeuvron.  If not, see <http://www.gnu.org/licenses/>.
  */
 package fr.insa.toto.webui;
 
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.H1;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -25,24 +27,59 @@ import java.sql.SQLException;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import fr.insa.beuvron.utils.database.ConnectionPool;
 import fr.insa.beuvron.vaadin.utils.dataGrid.ResultSetGrid;
 
-/**
- *
- * @author francois
- */
+
+
 @Route(value = "")
-@PageTitle("Likes")
+@PageTitle("vueprincipale")
 public class VuePrincipale extends VerticalLayout {
+
+    private final Button Admin;
+    private final Button Joueur;
+    private final Button Spectateur;
+
+  
+  
+  
+            
+    public VuePrincipale() {
+        this.add(new H2("Super site web"));
+        
+        H1 titrePage = new H1("Connexion");
+        
+        this.setAlignItems(Alignment.CENTER);
+        
+        
+        TextField tfNom = new TextField("Nom du tournoi");
+        this.Admin = new Button("Administrateur");
+        this.Joueur = new Button("Joueur");
+        this.Spectateur = new Button("Spectateur");
+        
+        this.Admin.addClickListener((t) -> {
+            //aller sur page admin 
+
+        });
+        
+        this.add(Admin,Joueur,Spectateur);
+        
+        
+        
+    }
+
+}
+
+/*public class VuePrincipale extends VerticalLayout {
     private BoiteACoucou bac1;
     private BoiteACoucou bac2;
             
     public VuePrincipale() {
-        this.add(new H2("TODO"));
+        this.add(new H2("Super site web"));
         this.bac1 = new BoiteACoucou();
         this.bac2 = new BoiteACoucou();
         this.add(this.bac1, this.bac2);
@@ -59,3 +96,4 @@ public class VuePrincipale extends VerticalLayout {
     }
 
 }
+*/
