@@ -90,6 +90,88 @@ public class Joueur extends ClasseMiroir {
         
     }
 
+    // 2. Méthode pour rechercher des joueurs par une partie de leur surnom
+    public static List<Joueur> rechercherParSurnom(String recherche) throws SQLException {
+        List<Joueur> resultats = new ArrayList<>();
+        try (Connection con = ConnectionPool.getConnection()) {
+            // Le % permet de chercher "n'importe quoi" avant ou après le texte
+            PreparedStatement pst = con.prepareStatement("SELECT * FROM joueur WHERE surnom LIKE ?");
+            pst.setString(1, "%" + recherche + "%");
+            ResultSet rs = pst.executeQuery();
+            
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String surnom = rs.getString("surnom");
+                String catStr = rs.getString("categorie");
+                int taille = rs.getInt("taille");
+                
+                StatutSexe sexe = null;
+                try {
+                    if(catStr != null) sexe = StatutSexe.valueOf(catStr);
+                } catch (IllegalArgumentException e) { sexe = StatutSexe.MASCULIN; }
+
+                resultats.add(new Joueur(id, surnom, sexe, taille));
+            }
+        }
+        return resultats;
+    }
+
+
+
+    public Joueur rechercherParSurnom2(String recherche) throws SQLException {
+    try (Connection con = ConnectionPool.getConnection()) {
+        // CORRECTION 1 : Utilisation de LIKE pour les recherches partielles
+        PreparedStatement pst = con.prepareStatement("SELECT * FROM joueur WHERE surnom LIKE ?");
+        pst.setString(1, "%" + recherche + "%");
+        
+        ResultSet rs = pst.executeQuery();
+        if (rs.next()) {
+            int id = rs.getInt("id");
+            // CORRECTION 2 : On récupère le VRAI surnom de la base, pas le texte de recherche
+            String surnomReel = rs.getString("surnom"); 
+            String catStr = rs.getString("categorie");
+            int taille = rs.getInt("taille");
+            
+            StatutSexe sexe = null;
+            try {
+                if(catStr != null) sexe = StatutSexe.valueOf(catStr);
+            } catch (IllegalArgumentException e) {
+                sexe = StatutSexe.MASCULIN;
+            }
+            // On retourne le joueur avec son vrai nom
+            return new Joueur(id, surnomReel, sexe, taille);
+        }
+        }
+        return null; // Aucun résultat trouvé
+    }
+
+
+    // 1. Méthode pour récupérer un joueur unique par son ID
+    public static Joueur getJoueurById(int id) throws SQLException {
+        try (Connection con = ConnectionPool.getConnection()) {
+            PreparedStatement pst = con.prepareStatement("SELECT * FROM joueur WHERE id = ?");
+            pst.setInt(1, id);
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                // On reconstitue l'objet depuis la BDD
+                String surnom = rs.getString("surnom");
+                String catStr = rs.getString("categorie");
+                int taille = rs.getInt("taille");
+                
+                // Gestion sécurisée de l'enum (si null ou invalide)
+                StatutSexe sexe = null;
+                try {
+                    if(catStr != null) sexe = StatutSexe.valueOf(catStr);
+                } catch (IllegalArgumentException e) {
+                    sexe = StatutSexe.MASCULIN; // Valeur par défaut si erreur
+                }
+
+                return new Joueur(id, surnom, sexe, taille);
+            }
+        }
+        return null; // Pas trouvé
+    }
+
     public void ajouterPoints(int points) { this.scoretotal += points; }
     public void update(Connection con) throws SQLException, Exception {
         if (this.getId() == -1) {
@@ -134,8 +216,10 @@ public class Joueur extends ClasseMiroir {
             } catch (SQLException e) {
                 throw new Exception("Erreur technique lors de la récupération du classement.", e);
             }
-            return classement;
-}
+        return classement;
+    }
+
+
 
 
 
@@ -208,6 +292,12 @@ public class Joueur extends ClasseMiroir {
     public void setScoretotal(int scoretotal) {
         this.scoretotal = scoretotal;
     }
-  
+    
+    
+
+
+
+
+
  //test commit Hack   
 }

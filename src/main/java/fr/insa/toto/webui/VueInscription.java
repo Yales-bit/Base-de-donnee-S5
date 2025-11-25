@@ -60,7 +60,7 @@ public class VueInscription extends VerticalLayout {
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 tfSurnom.clear(); nfTaille.clear(); cbSexe.clear();
                 
-            }catch (NumberFormatException e) {
+            } catch (NumberFormatException e) {
                  Notification.show("Erreur : Veuillez entrer des nombres valides dans les champs numériques.");
             } catch (Exception e) {
                 Notification.show("Erreur : " + e.getMessage());
