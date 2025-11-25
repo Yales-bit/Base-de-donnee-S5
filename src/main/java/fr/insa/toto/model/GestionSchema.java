@@ -28,7 +28,11 @@ public class GestionSchema {
                         + " surnom varchar(30) not null unique,"
                         + " taille integer,"
                         + " sexe varchar(15) not null, "
-                        + " scoretotal integer not null default 0"
+                        + " prenom varchar(30), "
+                        + " nom varchar(30), "
+                        + " mois integer, "
+                        + " jour integer, "
+                        + " annee integer "
                         + ") "
                 );
 
@@ -106,6 +110,16 @@ public class GestionSchema {
                         + " PRIMARY KEY (idequipe, idjoueur)"
                         + ") "
                 );
+                st.executeUpdate("create table Points ( " //Pour la gestion multi-tournoi
+                        + " idjoueur integer not null,"
+                        + " idequipe integer not null,"
+                        + " points integer not null,"
+                        + " FOREIGN KEY (idequipe) REFERENCES Equipe(id),"
+                        + " FOREIGN KEY (idjoueur) REFERENCES Joueur(id),"
+                        // Bonne pratique sur une table de liaison : clé primaire composite
+                        + " PRIMARY KEY (idjoueur, idequipe)"
+                        + ") "
+                );
 
                 con.commit();
             }
@@ -124,6 +138,7 @@ public class GestionSchema {
             try { st.executeUpdate("drop table Matchs"); } catch (SQLException ex) { System.out.println("Info: Table Matchs non supprimée"); } // Nom au pluriel
             try { st.executeUpdate("drop table Ronde"); } catch (SQLException ex) { System.out.println("Info: Table Ronde non supprimée"); }
             try { st.executeUpdate("drop table Points"); } catch (SQLException ex) { System.out.println("Info: Table Points non supprimée"); }
+            try { st.executeUpdate("drop table Composition"); } catch (SQLException ex) { System.out.println("Info: Table Composition non supprimée"); }
             // Suppression des mères ensuite
             try { st.executeUpdate("drop table Equipe"); } catch (SQLException ex) { System.out.println("Info: Table Equipe non supprimée"); }
             try { st.executeUpdate("drop table Terrain"); } catch (SQLException ex) { System.out.println("Info: Table Terrain non supprimée"); }

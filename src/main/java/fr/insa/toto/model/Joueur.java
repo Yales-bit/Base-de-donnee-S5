@@ -35,30 +35,70 @@ import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
 
 
 public class Joueur extends ClasseMiroir {
+    private String prenom;
+    private String nom;
+    private int mois;
+    private int jour;
+    private int annee;
     private int scoretotal;
     private String surnom;
     private StatutSexe sexe;
     private int taille;
 
-    //Constructeur utilisé quand on ne connait pas encore l'id du joueur (il vient d'être créé)
+    //Constructeur utilisé quand on ne connait pas encore l'id du joueur (il vient d'être créé) A SUPPRIMER
     public Joueur(String surnom, StatutSexe sexe, int taille) {
         super();
         this.surnom = surnom;
         this.sexe = sexe;
         this.taille = taille;
         this.scoretotal = 0;
+        this.prenom = null;
+        this.nom = null;
+        this.mois = 0;
+        this.jour = 0;
+        this.annee = 0;
+    }
+    //Constructeur avec nom, prenom, date de naissance
+    public Joueur(String surnom, StatutSexe sexe, int taille, String prenom, String nom, int mois, int jour, int annee) {
+        super();
+        this.surnom = surnom;
+        this.sexe = sexe;
+        this.taille = taille;
+        this.prenom = prenom;
+        this.nom = nom;
+        this.mois = mois;
+        this.jour = jour;
+        this.annee = annee;
     }
 
-    //Constructeur utilisé quand on connait l'id du joueur (il vient d'avoir son id attribué)
+    //Constructeur utilisé quand on connait l'id du joueur (il vient d'avoir son id attribué) A SUPPRIMER
     public Joueur(int id, String surnom, StatutSexe sexe, int taille) {
         super(id);
         this.surnom = surnom;
         this.sexe = sexe;
         this.taille = taille;
         this.scoretotal = 0;
+        this.prenom = null;
+        this.nom = null;
+        this.mois = 0;
+        this.jour = 0;
+        this.annee = 0;
     }
 
-    //Constructeur avec score total
+    //Constructeur avec id, nom, prenom, date de naissance
+    public Joueur(int id, String surnom, StatutSexe sexe, int taille, String prenom, String nom, int mois, int jour, int annee) {
+        super(id);
+        this.surnom = surnom;
+        this.sexe = sexe;
+        this.taille = taille;
+        this.prenom = prenom;
+        this.nom = nom;
+        this.mois = mois;
+        this.jour = jour;
+        this.annee = annee;
+    }
+
+    //Constructeur avec score total A SUPPRIMER
     public Joueur(int id, String surnom, StatutSexe sexe, int taille, int scoretotal) {
         super(id);
         this.surnom = surnom;
@@ -77,6 +117,22 @@ public class Joueur extends ClasseMiroir {
         if (J.getSexe().isEmpty()) {
             throw new SQLException("Le sexe est obligatoire");
         }
+        if (J.getPrenom() == null || J.getPrenom().isEmpty()) {
+            throw new SQLException("Le prenom est obligatoire");
+        }
+        if (J.getNom() == null || J.getNom().isEmpty()) {
+            throw new SQLException("Le nom est obligatoire");
+        }
+        if (J.getMois() < 1 || J.getMois() > 12) {
+            throw new SQLException("Le mois est obligatoire et doit etre compris entre 1 et 12");
+        }
+        if (J.getJour() < 1 || J.getJour() > 31) {
+            throw new SQLException("Le jour est obligatoire et doit etre compris entre 1 et 31");
+        }
+        if (J.getAnnee() < 1900 || J.getAnnee() > 2100) {
+            throw new SQLException("L'annee est obligatoire et doit etre compris entre 1900 et 2100");
+        }
+
         try (Connection con = ConnectionPool.getConnection()) {
             J.saveInDB(con);
         }
@@ -95,12 +151,16 @@ public class Joueur extends ClasseMiroir {
         if (this.getId() == -1) {
             throw new Exception("Impossible de mettre à jour ce joueur : il n'a pas encore été sauvegardé en base de données (son ID est -1). Utilisez saveInDB() d'abord.");
         }
-        String query = "UPDATE Joueur SET surnom = ?, taille = ?, sexe = ?, scoretotal = ? WHERE id = ?";
+        String query = "UPDATE Joueur SET surnom = ?, taille = ?, sexe = ?, prenom = ?, nom = ?, mois = ?, jour = ?, annee = ? WHERE id = ?";
         try (PreparedStatement pst = con.prepareStatement(query)) {
             pst.setString(1, this.surnom);
             pst.setInt(2, this.taille);
             pst.setString(3, this.sexe.toString());
-            pst.setInt(4, this.scoretotal);
+            pst.setString(4, this.prenom);
+            pst.setString(5, this.nom);
+            pst.setInt(6, this.mois);
+            pst.setInt(7, this.jour);
+            pst.setInt(8, this.annee);
             // Le dernier paramètre est l'ID pour le WHERE
             pst.setInt(5, this.getId());
 
@@ -114,7 +174,7 @@ public class Joueur extends ClasseMiroir {
     }
     public static List<Joueur> getClassementGeneral() throws Exception {
         List<Joueur> classement = new ArrayList<>();
-        String query = "SELECT * FROM Joueur ORDER BY scoretotal DESC";
+        String query = "SELECT * FROM Joueur ORDER BY scoretotal DESC"; // OBSOLETE, le score n'est plus dans la table joueur
         try (Connection con = ConnectionPool.getConnection();
             PreparedStatement pst = con.prepareStatement(query);
             ResultSet rs = pst.executeQuery()) {
@@ -123,8 +183,12 @@ public class Joueur extends ClasseMiroir {
                 String surnom = rs.getString("surnom");
                 StatutSexe sexe = StatutSexe.valueOf(rs.getString("sexe"));
                 int taille = rs.getInt("taille");
-                int scoretotal = rs.getInt("scoretotal");
-                Joueur j = new Joueur(id, surnom, sexe, taille, scoretotal);
+                String prenom = rs.getString("prenom");
+                String nom = rs.getString("nom");
+                int mois = rs.getInt("mois");
+                int jour = rs.getInt("jour");
+                int annee = rs.getInt("annee");
+                Joueur j = new Joueur(id, surnom, sexe, taille, prenom, nom, mois, jour, annee);
                 classement.add(j);
             }
             }
@@ -142,7 +206,7 @@ public class Joueur extends ClasseMiroir {
             @Override
     protected Statement saveSansId(Connection con) throws SQLException {
         PreparedStatement pst = con.prepareStatement("insert into Joueur (surnom, sexe, taille, scoretotal ) \n"
-                + "values(?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
+                + "values(?,?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
         pst.setString(1, this.surnom);
         pst.setString(2, this.sexe.toString());
         pst.setInt(3, this.taille);
@@ -202,12 +266,54 @@ public class Joueur extends ClasseMiroir {
     public void setTaille(int taille) {
         this.taille = taille;
     }
-    public int getScoretotal() {
+    public int getScoretotal() { //a supprimer
         return scoretotal;
     }
     public void setScoretotal(int scoretotal) {
         this.scoretotal = scoretotal;
     }
+
+    public String getPrenom() {
+        return prenom;
+    }
+
+    public void setPrenom(String prenom) {
+        this.prenom = prenom;
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+    public int getMois() {
+        return mois;
+    }
+
+    public void setMois(int mois) {
+        this.mois = mois;
+    }
+
+    public int getJour() {
+        return jour;
+    }
+
+    public void setJour(int jour) {
+        this.jour = jour;
+    }
+
+    public int getAnnee() {
+        return annee;
+    }
+
+    public void setAnnee(int annee) {
+        this.annee = annee;
+    }
+
+
   
  //test commit Hack   
 }

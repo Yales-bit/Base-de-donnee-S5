@@ -32,7 +32,7 @@ import fr.insa.toto.model.Joueur;
  @Route("ranking")
  @PageTitle("Ranking !")
 
-
+// CLASSE A MODIFIER EN PROFONDEUR POUR L'ADAPTER A LA GESTION MULTI TOURNOIS
 public class VueRanking extends VerticalLayout {
     private Grid<Joueur> grid;
     
@@ -57,6 +57,12 @@ public class VueRanking extends VerticalLayout {
         grid.addColumn(Joueur::getTaille).setHeader("Taille (cm)");
         grid.addColumn(Joueur::getSexe).setHeader("Sexe");
         grid.addColumn(Joueur::getScoretotal).setHeader("Score total");
+        grid.addColumn(Joueur::getPrenom).setHeader("Prenom");
+        grid.addColumn(Joueur::getNom).setHeader("Nom");
+        grid.addColumn(Joueur::getMois).setHeader("Mois");
+        grid.addColumn(Joueur::getJour).setHeader("Jour");
+        grid.addColumn(Joueur::getAnnee).setHeader("Annee");
+        
         grid.setSizeFull();
         // Ajout de bandes alternées pour la lisibilité
         grid.addThemeVariants(com.vaadin.flow.component.grid.GridVariant.LUMO_ROW_STRIPES);
