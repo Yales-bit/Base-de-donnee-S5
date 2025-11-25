@@ -95,22 +95,23 @@ public class Joueur extends ClasseMiroir {
         List<Joueur> resultats = new ArrayList<>();
         try (Connection con = ConnectionPool.getConnection()) {
             // Le % permet de chercher "n'importe quoi" avant ou après le texte
-            PreparedStatement pst = con.prepareStatement("SELECT * FROM joueur WHERE surnom LIKE ?");
+            PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur WHERE surnom LIKE ?");
             pst.setString(1, "%" + recherche + "%");
             ResultSet rs = pst.executeQuery();
             
             while (rs.next()) {
                 int id = rs.getInt("id");
                 String surnom = rs.getString("surnom");
-                String catStr = rs.getString("categorie");
+                String catStr = rs.getString("sexe");
                 int taille = rs.getInt("taille");
-                
+                int score = rs.getInt("scoretotal");
+
                 StatutSexe sexe = null;
                 try {
                     if(catStr != null) sexe = StatutSexe.valueOf(catStr);
                 } catch (IllegalArgumentException e) { sexe = StatutSexe.MASCULIN; }
 
-                resultats.add(new Joueur(id, surnom, sexe, taille));
+                resultats.add(new Joueur(id, surnom, sexe, taille, score));
             }
         }
         return resultats;
@@ -121,7 +122,7 @@ public class Joueur extends ClasseMiroir {
     public Joueur rechercherParSurnom2(String recherche) throws SQLException {
     try (Connection con = ConnectionPool.getConnection()) {
         // CORRECTION 1 : Utilisation de LIKE pour les recherches partielles
-        PreparedStatement pst = con.prepareStatement("SELECT * FROM joueur WHERE surnom LIKE ?");
+        PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur WHERE surnom LIKE ?");
         pst.setString(1, "%" + recherche + "%");
         
         ResultSet rs = pst.executeQuery();
@@ -149,14 +150,15 @@ public class Joueur extends ClasseMiroir {
     // 1. Méthode pour récupérer un joueur unique par son ID
     public static Joueur getJoueurById(int id) throws SQLException {
         try (Connection con = ConnectionPool.getConnection()) {
-            PreparedStatement pst = con.prepareStatement("SELECT * FROM joueur WHERE id = ?");
+            PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur WHERE id = ?");
             pst.setInt(1, id);
             ResultSet rs = pst.executeQuery();
             if (rs.next()) {
                 // On reconstitue l'objet depuis la BDD
                 String surnom = rs.getString("surnom");
-                String catStr = rs.getString("categorie");
+                String catStr = rs.getString("sexe");
                 int taille = rs.getInt("taille");
+                int score = rs.getInt("scoretotal");
                 
                 // Gestion sécurisée de l'enum (si null ou invalide)
                 StatutSexe sexe = null;
@@ -166,7 +168,7 @@ public class Joueur extends ClasseMiroir {
                     sexe = StatutSexe.MASCULIN; // Valeur par défaut si erreur
                 }
 
-                return new Joueur(id, surnom, sexe, taille);
+                return new Joueur(id, surnom, sexe, taille, score);
             }
         }
         return null; // Pas trouvé

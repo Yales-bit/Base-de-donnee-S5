@@ -35,7 +35,7 @@ public class VueProfilJoueur extends VerticalLayout implements HasUrlParameter<I
         
         // Bouton retour
         Button btnRetour = new Button("Retour à la recherche", e -> 
-            getUI().ifPresent(ui -> ui.navigate("recherche-joueur"))
+            getUI().ifPresent(ui -> ui.navigate("recherche"))
         );
 
         add(btnRetour, surnomHeader, new H3("Informations"), infoSexe, infoTaille);
@@ -59,7 +59,7 @@ public class VueProfilJoueur extends VerticalLayout implements HasUrlParameter<I
 
     private void afficherJoueur(Joueur j) {
         surnomHeader.setText(j.getSurnom());
-        infoSexe.setText("Catégorie/Sexe : " + (j.getSexe() != null ? j.getSexe().toString() : "?"));
+        infoSexe.setText("Sexe : " + (j.getSexe() != null ? j.getSexe().toString() : "?"));
         infoTaille.setText("Taille : " + j.getTaille() + " cm");
         
         // Tu pourras ajouter ici l'historique des matchs plus tard !
