@@ -13,13 +13,14 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import fr.insa.toto.model.Joueur;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Route("recherche")
 @PageTitle("Rechercher un joueur")
 public class VueRechercheJoueur extends VerticalLayout {
 
-    private TextField barreRecherche = new TextField("Nom du joueur");
+    private TextField barreRecherche = new TextField("Surnom, prenom ou nom du joueur");
     private Button boutonChercher = new Button("Rechercher", VaadinIcon.SEARCH.create());
     private Grid<Joueur> gridResultats = new Grid<>(Joueur.class);
 
@@ -27,7 +28,7 @@ public class VueRechercheJoueur extends VerticalLayout {
         setAlignItems(Alignment.CENTER);
         
         // 1. Configuration de la barre de recherche
-        barreRecherche.setPlaceholder("Ex: John Doe");
+        barreRecherche.setPlaceholder("Ex: 'Spiderman'");
         barreRecherche.setClearButtonVisible(true);
         
         // Permet de lancer la recherche avec la touche Entrée
@@ -38,7 +39,7 @@ public class VueRechercheJoueur extends VerticalLayout {
         zoneRecherche.setAlignItems(Alignment.BASELINE);
 
         // 2. Configuration de la Grille de résultats
-        gridResultats.setColumns("surnom", "sexe", "taille");
+        gridResultats.setColumns("surnom", "prenom", "nom", "sexe", "taille");
         gridResultats.addComponentColumn(joueur -> {
             Button b = new Button("Voir profil", VaadinIcon.EYE.create());
             b.addClickListener(e -> {
@@ -52,21 +53,41 @@ public class VueRechercheJoueur extends VerticalLayout {
     }
 
     private void lancerRecherche() {
-        String texte = barreRecherche.getValue();
-        if (texte == null || texte.isEmpty()) {
-            Notification.show("Veuillez entrer un nom");
-            return;
-        }
-
-        try {
-            List<Joueur> resultats = Joueur.rechercherParSurnom(texte);
-            gridResultats.setItems(resultats);
-            if (resultats.isEmpty()) {
-                Notification.show("Aucun joueur trouvé.");
-            }
-        } catch (SQLException e) {
-            Notification.show("Erreur : " + e.getMessage());
-        }
+    String texte = barreRecherche.getValue();
+    if (texte == null || texte.isEmpty()) {
+        Notification.show("Veuillez entrer un nom");
+        return;
     }
+
+    try {
+        List<Joueur> resultats = Joueur.rechercherParSurnom(texte);
+        
+        if (!resultats.isEmpty()) {
+            gridResultats.setItems(resultats);
+        } else {
+            List<Joueur> resultats2 = new ArrayList<>(); 
+            try {
+                resultats2 = Joueur.rechercherParPrenom(texte);
+            } catch (SQLException e) {
+                Notification.show("Erreur lors de la recherche par prénom : " + e.getMessage());
+            }
+            if (!resultats2.isEmpty()) {
+                gridResultats.setItems(resultats2);
+            } else {
+                try {
+                    List<Joueur> resultats3 = Joueur.rechercherParNom(texte);
+                    gridResultats.setItems(resultats3);
+                    if (resultats3.isEmpty()) {
+                         Notification.show("Aucun joueur trouvé pour : " + texte);
+                    }
+                } catch (SQLException e) {
+                    Notification.show("Erreur lors de la recherche par nom : " + e.getMessage());
+                }
+            }
+        }
+    } catch (SQLException e) {
+        Notification.show("Erreur lors de la recherche par surnom : " + e.getMessage());
+    }
+}
     
 }

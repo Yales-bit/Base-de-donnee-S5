@@ -72,7 +72,7 @@ public class Joueur extends ClasseMiroir {
     }
 
     //Constructeur utilisé quand on connait l'id du joueur (il vient d'avoir son id attribué) A SUPPRIMER
-    public Joueur(int id, String surnom, StatutSexe sexe, int taille) {
+    /*public Joueur(int id, String surnom, StatutSexe sexe, int taille) {
         super(id);
         this.surnom = surnom;
         this.sexe = sexe;
@@ -83,7 +83,7 @@ public class Joueur extends ClasseMiroir {
         this.mois = 0;
         this.jour = 0;
         this.annee = 0;
-    }
+    }*/
 
     //Constructeur avec id, nom, prenom, date de naissance
     public Joueur(int id, String surnom, StatutSexe sexe, int taille, String prenom, String nom, int mois, int jour, int annee) {
@@ -99,12 +99,22 @@ public class Joueur extends ClasseMiroir {
     }
 
     //Constructeur avec score total A SUPPRIMER
-    public Joueur(int id, String surnom, StatutSexe sexe, int taille, int scoretotal) {
+    /*public Joueur(int id, String surnom, StatutSexe sexe, int taille, int scoretotal) {
         super(id);
         this.surnom = surnom;
         this.sexe = sexe;
         this.taille = taille;
         this.scoretotal = scoretotal;
+    }*/
+
+    //Constructeur avec tout sauf annee mois jour
+    public Joueur(int id, String surnom, StatutSexe sexe, int taille, String prenom, String nom) {
+        super(id);
+        this.surnom = surnom;
+        this.sexe = sexe;
+        this.taille = taille;
+        this.prenom = prenom;
+        this.nom = nom;
     }
 
     public static void creerJoueur(Joueur J) throws SQLException {
@@ -160,14 +170,75 @@ public class Joueur extends ClasseMiroir {
                 String surnom = rs.getString("surnom");
                 String catStr = rs.getString("sexe");
                 int taille = rs.getInt("taille");
-                
+                String prenom = rs.getString("prenom");
+                String nom = rs.getString("nom");
+                int mois = rs.getInt("mois");
+                int jour = rs.getInt("jour");
+                int annee = rs.getInt("annee");
+                StatutSexe sexe = null;
+                try {
+                    if(catStr != null) sexe = StatutSexe.valueOf(catStr);
+                } catch (IllegalArgumentException e) { sexe = StatutSexe.MASCULIN; }
+
+                resultats.add(new Joueur(id, surnom, sexe, taille, prenom, nom, mois, jour, annee));
+            }
+        }
+        return resultats;
+    }
+    public static List<Joueur> rechercherParPrenom(String recherche) throws SQLException {
+        List<Joueur> resultats = new ArrayList<>();
+        try (Connection con = ConnectionPool.getConnection()) {
+            // Le % permet de chercher "n'importe quoi" avant ou après le texte
+            PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur WHERE prenom LIKE ?");
+            pst.setString(1, "%" + recherche + "%");
+            ResultSet rs = pst.executeQuery();
+            
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String surnom = rs.getString("surnom");
+                String catStr = rs.getString("sexe");
+                int taille = rs.getInt("taille");
+                String prenom = rs.getString("prenom");
+                String nom = rs.getString("nom");
+                int mois = rs.getInt("mois");
+                int jour = rs.getInt("jour");
+                int annee = rs.getInt("annee");
 
                 StatutSexe sexe = null;
                 try {
                     if(catStr != null) sexe = StatutSexe.valueOf(catStr);
                 } catch (IllegalArgumentException e) { sexe = StatutSexe.MASCULIN; }
 
-                resultats.add(new Joueur(id, surnom, sexe, taille));
+                resultats.add(new Joueur(id, surnom, sexe, taille, prenom, nom, mois, jour, annee));
+            }
+        }
+        return resultats;
+    }
+
+    public static List<Joueur> rechercherParNom(String recherche) throws SQLException {
+        List<Joueur> resultats = new ArrayList<>();
+        try (Connection con = ConnectionPool.getConnection()) {
+            // Le % permet de chercher "n'importe quoi" avant ou après le texte
+            PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur WHERE nom LIKE ?");
+            pst.setString(1, "%" + recherche + "%");
+            ResultSet rs = pst.executeQuery();
+            
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String surnom = rs.getString("surnom");
+                String prenom = rs.getString("prenom");
+                String nom = rs.getString("nom");
+                String catStr = rs.getString("sexe");
+                int taille = rs.getInt("taille");
+                int mois = rs.getInt("mois");
+                int jour = rs.getInt("jour");
+                int annee = rs.getInt("annee");
+                StatutSexe sexe = null;
+                try {
+                    if(catStr != null) sexe = StatutSexe.valueOf(catStr);
+                } catch (IllegalArgumentException e) { sexe = StatutSexe.MASCULIN; }
+
+                resultats.add(new Joueur(id, surnom, sexe, taille, prenom, nom, mois, jour, annee));
             }
         }
         return resultats;

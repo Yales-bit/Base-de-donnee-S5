@@ -13,6 +13,8 @@ import fr.insa.toto.model.Joueur;
 import fr.insa.beuvron.vaadin.utils.VaadinUtils; // Si tu veux utiliser tes utilitaires
 import java.awt.Color;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.Period;
 
 
 import fr.insa.beuvron.utils.database.ConnectionPool;
@@ -34,6 +36,8 @@ public class VueProfilJoueur extends VerticalLayout implements HasUrlParameter<I
     private Span infoMois = new Span();
     private Span infoAnnee = new Span();
     private Span infoDate = new Span();
+    private Span infoAge = new Span();
+    private String mois;
 
     
     public VueProfilJoueur() {
@@ -45,7 +49,7 @@ public class VueProfilJoueur extends VerticalLayout implements HasUrlParameter<I
             getUI().ifPresent(ui -> ui.navigate("recherche"))
         );
 
-        add(btnRetour, surnomHeader, new H3("Informations"),infoNom, infoPrenom, infoSexe, infoJour, infoMois, infoAnnee, infoTaille, infoDate);
+        add(btnRetour, surnomHeader, new H3("Informations"),infoNom, infoPrenom, infoSexe, infoJour, infoMois, infoAnnee, infoTaille, infoDate, infoAge);
     }
 
     // Cette méthode est appelée automatiquement par Vaadin quand on arrive sur la page
@@ -65,13 +69,33 @@ public class VueProfilJoueur extends VerticalLayout implements HasUrlParameter<I
     }
 
     private void afficherJoueur(Joueur j) {
-        surnomHeader.setText(j.getSurnom());
-        
+        surnomHeader.setText(j.getSurnom());       
         infoSexe.setText("Sexe : " + (j.getSexe() != null ? j.getSexe().toString() : "?"));
         infoTaille.setText("Taille : " + j.getTaille() + " cm");
         infoNom.setText("Nom : " + j.getNom());
         infoPrenom.setText("Prénom : " + j.getPrenom());
-        infoDate.setText("Date de naissance : " + j.getJour() + "/" + j.getMois() + "/" + j.getAnnee());
+        if(j.getMois()<10){ mois = "0"+j.getMois();}else{mois = ""+j.getMois();};
+        infoDate.setText("Date de naissance : " + j.getJour() + "/" + mois + "/" + j.getAnnee());
+
+        // --- CALCUL DE L'ÂGE ---
+        try {
+            // 1. On crée la date de naissance à partir des 3 champs du joueur
+            LocalDate dateNaissance = LocalDate.of(j.getAnnee(), j.getMois(), j.getJour());
+            
+            // 2. On récupère la date d'aujourd'hui
+            LocalDate aujourdhui = LocalDate.now();
+            
+            // 3. On calcule la période entre les deux dates et on extrait le nombre d'années
+            int age = Period.between(dateNaissance, aujourdhui).getYears();
+            
+            // 4. On affiche l'âge (en supposant que vous avez créé le composant infoAge)
+            infoAge.setText("Âge : " + age + " ans");
+            
+        } catch (Exception e) {
+            // Sécurité : si les données de date dans le joueur sont invalides (ex: 31 février), 
+            // LocalDate.of lancera une erreur. On affiche "inconnu" dans ce cas.
+            infoAge.setText("Âge : Inconnu (date invalide)");
+        }
         
         
         // Tu pourras ajouter ici l'historique des matchs plus tard !
