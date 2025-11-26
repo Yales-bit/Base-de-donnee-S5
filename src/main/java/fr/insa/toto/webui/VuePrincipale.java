@@ -18,6 +18,7 @@ along with CoursBeuvron.  If not, see <http://www.gnu.org/licenses/>.
  */
 package fr.insa.toto.webui;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
 import java.sql.Connection;
@@ -62,7 +63,7 @@ public class VuePrincipale extends VerticalLayout {
         this.Spectateur = new Button("Spectateur");
         
         this.Admin.addClickListener((t) -> {
-            //aller sur page admin 
+          UI.getCurrent().navigate("ConnexionAdmin");  // aller à la page Admin connexion
 
         });
         

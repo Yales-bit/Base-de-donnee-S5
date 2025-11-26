@@ -18,27 +18,22 @@ along with CoursBeuvron.  If not, see <http://www.gnu.org/licenses/>.
  */
 package fr.insa.toto.webui;
 
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 // AJOUT DE L'IMPORT POUR H1
 import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-import fr.insa.beuvron.utils.database.ConnectionPool;
+import com.vaadin.flow.component.login.LoginForm;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import fr.insa.toto.model.Authentification;
 
-@Route(value = "connexion")
+
+@Route(value = "ConnexionAdmin")
 @PageTitle("Connexion") 
 
 
@@ -47,14 +42,72 @@ import fr.insa.beuvron.utils.database.ConnectionPool;
  *
  * @author vicbl
  */
+
+
 public class ConnexionAdmin extends VerticalLayout {
+
+    private LoginForm loginForm = new LoginForm();
+
+    public ConnexionAdmin() {
+        
+        setSizeFull();
+        setJustifyContentMode(JustifyContentMode.CENTER);
+        setAlignItems(Alignment.CENTER);
+        
+       
+
+	add(new H1("Connexion"));
+
+        loginForm.addLoginListener(event -> {
+            String identifiant = event.getUsername();
+            String mdp = event.getPassword();
+
+            if (Authentification.ok(identifiant, mdp)) {
+                loginForm.getUI().ifPresent(ui -> ui.navigate("VueAdmin"));
+            } else {
+                loginForm.setError(true);
+            }
+        });
+
+        add(loginForm);
+    }
+}
+/*
+public class ConnexionAdmin extends VerticalLayout implements BeforeEnterObserver  {
+  
+    private final LoginForm login = new LoginForm(); 
+
+	public ConnexionAdmin(){
+		addClassName("ConnexionAdmin");
+		setSizeFull(); 
+		setAlignItems(Alignment.CENTER);
+		setJustifyContentMode(JustifyContentMode.CENTER);
+
+		login.setAction("Connexion"); 
+
+		add(new H1("Connexion"), login);
+	}
+
+	@Override
+	public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
+		// inform the user about an authentication error
+		if(beforeEnterEvent.getLocation()  
+        .getQueryParameters()
+        .getParameters()
+        .containsKey("error")) {
+            login.setError(true);
+        }
+	}
+}
+*/
+/*
     public ConnexionAdmin() {
          H1 titrePage = new H1("Connexion");
          //Pour centrer tout le contenu de la page
          this.setAlignItems(Alignment.CENTER);
 
         TextField user = new TextField("Identifiants");
-        TextField mdp = new TextField("Mot de passe");
+        TextField mdp = new PasswordField("Mot de passe");
         
         Button bValider = new Button("Valider");
         bValider.addClickListener(event -> {
@@ -67,4 +120,6 @@ public class ConnexionAdmin extends VerticalLayout {
 
 
         });
+        this.add(titrePage, user,mdp, bValider);
     }}
+*/
