@@ -332,7 +332,7 @@ public class Joueur extends ClasseMiroir {
         return classement;
     }
 
-
+    
 
 
 
@@ -350,6 +350,24 @@ public class Joueur extends ClasseMiroir {
     }
 
     
+ //  Récupérer le nombre de joueurs en base
+    public static int getNombreJoueurs() throws SQLException {
+         try (Connection con = ConnectionPool.getConnection()){
+
+        PreparedStatement stmt = con.prepareStatement("SELECT COUNT(*) FROM Joueur");
+        ResultSet rs = stmt.executeQuery();
+
+        int count = 0;
+        if (rs.next()) {
+            count = rs.getInt(1);
+        }
+
+        rs.close();
+        stmt.close();
+        con.close();
+
+        return count;
+    }}
 
 
     /*public static void main(String[] args) {
