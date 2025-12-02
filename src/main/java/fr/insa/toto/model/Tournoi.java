@@ -26,10 +26,14 @@ package fr.insa.toto.model;
 import fr.insa.beuvron.utils.database.ClasseMiroir;
 import fr.insa.beuvron.utils.database.ConnectionPool;
 import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -151,8 +155,59 @@ public class Tournoi extends ClasseMiroir {
         }
     }
 
+    public static List<Tournoi> getAllTournois() throws SQLException {
+        List<Tournoi> list = new ArrayList<>();
+        try (Connection con = ConnectionPool.getConnection()) {
+            // Attention : on utilise le nom de table "tournoi" (singulier) défini précédemment
+            PreparedStatement pst = con.prepareStatement("SELECT * FROM Tournoi");
+            ResultSet rs = pst.executeQuery();
+            while (rs.next()) {
+                // On récupère les colonnes
+                int id = rs.getInt("id");
+                String nom = rs.getString("nom");
+                int nbJoueurs = rs.getInt("nbrjoueursparequipe");
+                int nbEquipes = rs.getInt("nbrequipes");
+                int duree = rs.getInt("dureematch");
+                int nbRondes = rs.getInt("nbrrondes");
+                int nbTerrains = rs.getInt("nbreterrains");
+                int min = rs.getInt("nbrequipemax");
+                int max = rs.getInt("nbrequipemin");
+                boolean ouvert = rs.getBoolean("ouvert");
+                boolean fini = rs.getBoolean("fini");
+
+                // On reconstruit l'objet
+                list.add(new Tournoi(id, nbJoueurs, nbEquipes, duree, max, min, nbRondes, nom, nbTerrains, ouvert, fini));
+            }
+        }
+        return list;
+    }
 
 
+    // Méthode pour récupérer un tournoi spécifique par son ID
+    public static Tournoi getTournoiById(int id) throws SQLException {
+        try (Connection con = ConnectionPool.getConnection()) {
+            // ATTENTION : Nom de table avec Majuscule "Tournoi"
+            PreparedStatement pst = con.prepareStatement("SELECT * FROM Tournoi WHERE id = ?");
+            pst.setInt(1, id);
+            ResultSet rs = pst.executeQuery();
+            
+            if (rs.next()) {
+                String nom = rs.getString("nom");
+                int nbJoueurs = rs.getInt("nbrjoueursparequipe");
+                int nbEquipes = rs.getInt("nbrequipes");
+                int duree = rs.getInt("dureematch");
+                int nbRondes = rs.getInt("nbrrondes");
+                int nbTerrains = rs.getInt("nbreterrains");
+                int min = rs.getInt("nbrequipemax");
+                int max = rs.getInt("nbrequipemin");
+                boolean ouvert = rs.getBoolean("ouvert");
+                boolean fini = rs.getBoolean("fini");
+
+                return new Tournoi(id, nbJoueurs, nbEquipes, duree, max, min, nbRondes, nom, nbTerrains, ouvert, fini);
+            }
+        }
+        return null; // Pas trouvé
+    }
 
 
 @Override

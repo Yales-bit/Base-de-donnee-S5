@@ -1,81 +1,87 @@
 package fr.insa.toto.webui;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
-// AJOUT DE L'IMPORT POUR H1
-import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-
-import fr.insa.beuvron.utils.database.ConnectionPool;
 import fr.insa.toto.model.Tournoi;
 
-@Route(value = "newtournoi")
-@PageTitle("NOUVEAU TOURNOI") 
-
+@Route(value = "nouveau-tournoi")
+@PageTitle("Création Tournoi")
 public class VueCreation extends VerticalLayout {
 
+    // Utilisation de IntegerField au lieu de TextField pour les nombres (plus sûr)
+    private TextField tfNom = new TextField("Nom du tournoi");
+    private IntegerField tfNbRondes = new IntegerField("Nombre de rondes");
+    private IntegerField tfNbrEquipes = new IntegerField("Nombre d'équipes (estimé)");
+    private IntegerField tfNbrJoueurs = new IntegerField("Joueurs par équipe");
+    private IntegerField tfNbrTerrains = new IntegerField("Terrains disponibles");
+    private IntegerField tfDuree = new IntegerField("Durée matchs (min)");
+
+    private Button bValider = new Button("Créer le tournoi");
+    private Button bAnnuler = new Button("Annuler");
+
     public VueCreation() {
+        setAlignItems(Alignment.CENTER);
+        add(new H2("Nouveau Tournoi"));
 
-        // On crée un composant H1 (Titre principal)
-        H1 titrePage = new H1("NOUVEAU TOURNOI");
-
-        //Pour centrer tout le contenu de la page
-         this.setAlignItems(Alignment.CENTER);
-
-        TextField tfNom = new TextField("Nom du tournoi");
-        TextField tfDate = new TextField("Date du tournoi");
-        TextField tfNbRondes = new TextField("Nombre de rondes");
-        TextField tfNbrEquipes = new TextField("Nombre d'equipes");
-        TextField tfNbrJoueurs = new TextField("Nombre de joueurs par equipe");
-        TextField tfNbrTerrains = new TextField("Nombre de terrains");
-        TextField tfDuree = new TextField("Duree des matchs");
+        // Configuration des champs
+        tfNom.setWidth("300px");
+        tfNbRondes.setMin(1); tfNbRondes.setValue(3);
+        tfNbrJoueurs.setMin(1); tfNbrJoueurs.setValue(2); // Double par défaut
+        tfNbrTerrains.setMin(1);
         
-        Button bValider = new Button("Valider");
+        // Style des boutons
+        bValider.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        bAnnuler.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
+        // --- ACTION VALIDER ---
         bValider.addClickListener(event -> {
             try {
-                String Nom = tfNom.getValue();
-                String Date = tfDate.getValue(); 
-                int NbRondes = Integer.parseInt(tfNbRondes.getValue());
-                int NbrEquipes = Integer.parseInt(tfNbrEquipes.getValue());
-                int NbrJoueurs = Integer.parseInt(tfNbrJoueurs.getValue());
-                int NbrTerrains = Integer.parseInt(tfNbrTerrains.getValue());
-                int Duree = Integer.parseInt(tfDuree.getValue());
+                // 1. Récupération et conversion
+                String nom = tfNom.getValue();
+                int nbRondes = tfNbRondes.getValue() != null ? tfNbRondes.getValue() : 0;
+                int nbrEquipes = tfNbrEquipes.getValue() != null ? tfNbrEquipes.getValue() : 0;
+                int nbrJoueurs = tfNbrJoueurs.getValue() != null ? tfNbrJoueurs.getValue() : 0;
+                int nbrTerrains = tfNbrTerrains.getValue() != null ? tfNbrTerrains.getValue() : 0;
+                int duree = tfDuree.getValue() != null ? tfDuree.getValue() : 0;
+
+                // 2. Création de l'objet (Constructeur sans ID)
+                Tournoi t = new Tournoi(nbrJoueurs, nbrEquipes, duree, nbRondes, nom, nbrTerrains, false, false);
+
+                // 3. Sauvegarde en BDD
+                Tournoi.creerTournoi(t);
                 
-                Tournoi T = new Tournoi(NbrJoueurs, NbrEquipes, Duree, NbRondes, Nom, NbrTerrains, false, false);
-                
-                Tournoi.creerTournoi(T);
-                Notification.show("Tournoi créé !");
-            } catch (NumberFormatException e) {
-                 Notification.show("Erreur : Veuillez entrer des nombres valides dans les champs numériques.");
+                Notification.show("Tournoi créé avec succès !", 3000, Notification.Position.TOP_CENTER)
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+                // 4. REDIRECTION vers la liste
+                getUI().ifPresent(ui -> ui.navigate(VueListeTournois.class));
+
             } catch (Exception e) {
-                Notification.show("Erreur : " + e.getMessage());
-                e.printStackTrace();
+                Notification.show("Erreur : " + e.getMessage(), 5000, Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         });
-        
-        Button bAnnuler = new Button("Annuler");
-        bAnnuler.addClickListener(event ->{
-            tfNom.clear();
-            tfDate.clear();
-            tfNbRondes.clear();
-            tfNbrEquipes.clear();
-            tfNbrJoueurs.clear();
-            tfNbrTerrains.clear();
-            tfDuree.clear();
-        });
-        HorizontalLayout hLayout = new HorizontalLayout(bValider, bAnnuler);
 
-        this.add(titrePage, tfNom, tfDate, tfDuree, tfNbRondes, tfNbrEquipes, tfNbrJoueurs, tfNbrTerrains, hLayout);
+        // --- ACTION ANNULER ---
+        bAnnuler.addClickListener(e -> {
+             getUI().ifPresent(ui -> ui.navigate(VueListeTournois.class));
+        });
+
+        HorizontalLayout boutons = new HorizontalLayout(bValider, bAnnuler);
+        
+        // Formulaire
+        VerticalLayout form = new VerticalLayout(tfNom, tfNbRondes, tfNbrEquipes, tfNbrJoueurs, tfNbrTerrains, tfDuree, boutons);
+        form.setAlignItems(Alignment.CENTER);
+        
+        add(form);
     }
 }
