@@ -370,6 +370,34 @@ public class Joueur extends ClasseMiroir {
     }}
 
 
+    // Récupérer la liste de tous les joueurs existants
+    public static List<Joueur> getAllJoueurs() throws SQLException {
+        List<Joueur> list = new ArrayList<>();
+        try (Connection con = ConnectionPool.getConnection()) {
+            PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur");
+            ResultSet rs = pst.executeQuery();
+            while (rs.next()) {
+                // On réutilise le code de mapping existant ou on le simplifie ici
+                int id = rs.getInt("id");
+                String surnom = rs.getString("surnom");
+                String sexeStr = rs.getString("sexe");
+                int taille = rs.getInt("taille");
+                String prenom = rs.getString("prenom");
+                String nom = rs.getString("nom");
+                int mois = rs.getInt("mois");
+                int jour = rs.getInt("jour");
+                int annee = rs.getInt("annee");
+                StatutSexe sexe = null;
+                try { if(sexeStr != null) sexe = StatutSexe.valueOf(sexeStr); } catch (Exception e) {}
+                
+                list.add(new Joueur(id, surnom, sexe, taille, prenom, nom, mois, jour, annee));
+            }
+        }
+        return list;
+    }
+
+
+
     /*public static void main(String[] args) {
         try {
             Joueur j1 = new Joueur("testCre2", "J", 152);

@@ -230,6 +230,126 @@ protected Statement saveSansId(Connection con) throws SQLException {
 }
 
 
+// Inscrire une liste de joueurs à ce tournoi
+    public void inscrireJoueurs(List<Joueur> joueurs) throws SQLException {
+        try (Connection con = ConnectionPool.getConnection()) {
+            String sql = "INSERT INTO Inscription (id_tournoi, id_joueur) VALUES (?, ?)";
+            try (PreparedStatement pst = con.prepareStatement(sql)) {
+                for (Joueur j : joueurs) {
+                    pst.setInt(1, this.getId()); // ID du tournoi actuel
+                    pst.setInt(2, j.getId());    // ID du joueur
+                    pst.addBatch(); // On prépare l'ajout en lot
+                }
+                pst.executeBatch(); // On exécute tout d'un coup
+            }
+        }
+    }
+
+    // Récupérer les joueurs inscrits à ce tournoi
+    public List<Joueur> getJoueursInscrits() throws SQLException {
+        List<Joueur> list = new ArrayList<>();
+        String sql = "SELECT j.* FROM Joueur j JOIN Inscription i ON j.id = i.id_joueur WHERE i.id_tournoi = ?";
+        
+        try (Connection con = ConnectionPool.getConnection()) {
+            PreparedStatement pst = con.prepareStatement(sql);
+            pst.setInt(1, this.getId());
+            ResultSet rs = pst.executeQuery();
+            while (rs.next()) {
+                // Mapping simple (à adapter si tu as une méthode de mapping dédiée)
+                int id = rs.getInt("id");
+                String surnom = rs.getString("surnom");
+                String sexeStr = rs.getString("sexe");
+                int taille = rs.getInt("taille");
+                String prenom = rs.getString("prenom");
+                String nom = rs.getString("nom");
+                int mois = rs.getInt("mois");
+                int jour = rs.getInt("jour");
+                int annee = rs.getInt("annee");
+                StatutSexe sexe = null;
+                try { if(sexeStr != null) sexe = StatutSexe.valueOf(sexeStr); } catch (Exception e) {}
+                
+                list.add(new Joueur(id, surnom, sexe, taille, prenom, nom, mois, jour, annee));
+            }
+        }
+        return list;
+    }    
+
+/**
+ * Compte le nombre de joueurs actuellement inscrits à ce tournoi (via la table Inscription).
+ * @return Le nombre de joueurs.
+ * @throws SQLException 
+ */
+public int compterJoueursInscrits() throws SQLException {
+    // Attention : Nom de table avec Majuscule 'Inscription'
+    String sql = "SELECT COUNT(id_joueur) FROM Inscription WHERE id_tournoi = ?";
+    
+    // Vérification de base pour s'assurer que l'objet est bien en BDD
+    if (this.getId() == -1) {
+        throw new IllegalStateException("Ce tournoi n'a pas encore été sauvegardé.");
+    }
+    
+    try (Connection con = ConnectionPool.getConnection()) {
+        PreparedStatement pst = con.prepareStatement(sql);
+        pst.setInt(1, this.getId());
+        
+        try (ResultSet rs = pst.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1); // Le résultat du COUNT est dans la première colonne
+            }
+        }
+    }
+    return 0;
+}
+
+/**
+ * Vérifie si le nombre de joueurs inscrits est suffisant pour former au moins un match.
+ * @return True si le minimum est atteint, False sinon.
+ * @throws SQLException 
+ */
+public boolean estNombreJoueursSuffisant() throws SQLException {
+    int nbJoueursInscrits = this.compterJoueursInscrits();
+    // Récupération du paramètre global défini lors de la création du tournoi
+    int nbJoueursParEquipe = this.getNbrJoueursParEquipe(); 
+    
+    // Calcul du minimum requis : 2 équipes * (Joueurs par équipe)
+    int minimumRequis = 2 * nbJoueursParEquipe; 
+    
+    return nbJoueursInscrits >= minimumRequis;
+}
+
+
+/**
+ * Démarre la première ronde si toutes les conditions sont remplies.
+ * @throws Exception si le nombre de joueurs est insuffisant.
+ */
+public Ronde demarrerPremiereRonde() throws Exception {
+    
+    // 1. Vérification de la condition demandée
+    if (!this.estNombreJoueursSuffisant()) {
+        int nbJoueursInscrits = this.compterJoueursInscrits();
+        int nbJoueursParEquipe = this.getNbrJoueursParEquipe();
+        int minimumRequis = 2 * nbJoueursParEquipe;
+        
+        // Lance une exception claire que la VueDetailsTournoi pourra afficher
+        throw new Exception(
+            "Impossible de démarrer la ronde. Nombre de joueurs insuffisant : " +
+            nbJoueursInscrits + " inscrits. Minimum requis pour former 2 équipes : " + minimumRequis + 
+            " (" + nbJoueursParEquipe + " joueurs par équipe)."
+        );
+    }
+    
+    // 2. Création de la Ronde 
+    // Attention : Tu devras implémenter le saveInDB pour Ronde et sa logique de numéro !
+    Ronde nouvelleRonde = new Ronde(1, this.getId(), StatutRonde.EN_COURS);
+    
+    // Étape technique future :
+    // - Sauvegarder la nouvelleRonde en BDD (nouvelleRonde.saveInDB(...))
+    // - Appeler la méthode de répartition des joueurs et de création des Matchs (Étape suivante)
+    // - Mettre à jour le statut du Tournoi (this.setOuvert(true) puis this.updateInDB())
+
+    return nouvelleRonde;
+}
+
     public int getNbrJoueursParEquipe() {
         return nbrjoueursparequipe;
     }

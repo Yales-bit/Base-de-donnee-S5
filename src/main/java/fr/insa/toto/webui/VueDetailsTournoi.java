@@ -11,9 +11,18 @@ import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.grid.Grid;
+
+import fr.insa.toto.model.Joueur;
+
+import java.util.List;
+
+import fr.insa.toto.model.Joueur;
 import fr.insa.toto.model.Tournoi;
 
 import java.sql.SQLException;
+
+import com.vaadin.flow.component.notification.Notification;
 
 @Route("tournoi") // L'URL sera .../tournoi/ID
 @PageTitle("Détails du Tournoi")
@@ -30,6 +39,8 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
 
     private Button btnRetour = new Button("Retour liste", VaadinIcon.ARROW_LEFT.create());
 
+    private Grid<Joueur> gridParticipants = new Grid<>(Joueur.class);
+
     public VueDetailsTournoi() {
         setAlignItems(Alignment.CENTER);
 
@@ -42,6 +53,13 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
         infosLayout.setSpacing(false);
 
         add(btnRetour, titreTournoi, statusBadge, new H4("Paramètres"), infosLayout);
+        gridParticipants.setColumns("surnom", "sexe", "taille");
+        gridParticipants.setWidthFull();
+        gridParticipants.setMaxWidth("800px");
+        
+        // On ajoute la grille à la fin de l'affichage
+        add(btnRetour, titreTournoi, statusBadge, new H4("Paramètres"), infosLayout, 
+            new H4("Participants inscrits"), gridParticipants);
     }
 
     @Override
@@ -83,5 +101,13 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
         infoTerrains.setText(t.getNbrTerrains() + " terrains disponibles");
         infoEquipes.setText(t.getNbrJoueursParEquipe() + " joueurs par équipe");
         infoDuree.setText("Matchs de " + t.getDureeMatch() + " minutes");
+        try {
+            List<Joueur> inscrits = t.getJoueursInscrits();
+            gridParticipants.setItems(inscrits);
+            // Petit bonus : mettre à jour le titre de la section
+            // "Participants inscrits (12)"
+        } catch (SQLException e) {
+            Notification.show("Erreur chargement participants : " + e.getMessage());
+        }
     }
 }
