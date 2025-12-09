@@ -24,7 +24,7 @@ public class VueCreation extends VerticalLayout {
 
     private TextField tfNom = new TextField("Nom du tournoi");
     private IntegerField tfNbRondes = new IntegerField("Nombre de rondes");
-    private IntegerField tfNbrEquipes = new IntegerField("Nombre d'équipes (estimé)");
+    //private IntegerField tfNbrEquipes = new IntegerField("Nombre d'équipes (estimé)");
     private IntegerField tfNbrJoueurs = new IntegerField("Joueurs par équipe");
     private IntegerField tfNbrTerrains = new IntegerField("Terrains disponibles");
     private IntegerField tfDuree = new IntegerField("Durée matchs (min)");
@@ -58,12 +58,12 @@ public class VueCreation extends VerticalLayout {
                 // 1. Création du Tournoi
                 String nom = tfNom.getValue();
                 int nbRondes = tfNbRondes.getValue() != null ? tfNbRondes.getValue() : 0;
-                int nbrEquipes = tfNbrEquipes.getValue() != null ? tfNbrEquipes.getValue() : 0;
+                //int nbrEquipes = tfNbrEquipes.getValue() != null ? tfNbrEquipes.getValue() : 0;
                 int nbrJoueurs = tfNbrJoueurs.getValue() != null ? tfNbrJoueurs.getValue() : 0;
                 int nbrTerrains = tfNbrTerrains.getValue() != null ? tfNbrTerrains.getValue() : 0;
                 int duree = tfDuree.getValue() != null ? tfDuree.getValue() : 0;
 
-                Tournoi t = new Tournoi(nbrJoueurs, nbrEquipes, duree, nbRondes, nom, nbrTerrains, false, false);
+                Tournoi t = new Tournoi(nbrJoueurs, duree, nbRondes,  nom,nbrTerrains,  false, false);
                 Tournoi.creerTournoi(t); // Le tournoi est sauvé, il a maintenant un ID
 
                 // 2. Inscription des Joueurs sélectionnés
@@ -93,7 +93,7 @@ public class VueCreation extends VerticalLayout {
         VerticalLayout form = new VerticalLayout(
             tfNom, 
             new HorizontalLayout(tfNbRondes, tfNbrTerrains),
-            new HorizontalLayout(tfNbrEquipes, tfNbrJoueurs, tfDuree),
+            new HorizontalLayout(tfNbrJoueurs, tfDuree),
             new H4("Sélectionnez les participants :"),
             gridSelectionJoueurs, // Ajout de la grille dans le formulaire
             boutons
