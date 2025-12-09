@@ -112,15 +112,41 @@ public class Tournoi extends ClasseMiroir {
         this.nbrequipemin = 2; 
         this.nbrequipemax = -1;
     }
+    // Constructeur sans id et sans specification du nombre d'équipes : à utiliser à compter du 09/12/25
+    public Tournoi(int nbrjoueursparequipe, int dureematch, int nbrrondes, String nom, int nbreterrains, boolean ouvert, boolean fini) {
+        super();
+        this.nbrjoueursparequipe = nbrjoueursparequipe;
+        this.dureematch = dureematch;
+        this.nbrrondes = nbrrondes;
+        this.nom = nom;
+        this.nbreterrains = nbreterrains;
+        this.ouvert = ouvert;
+        this.fini = fini;
+        this.nbrequipemin = 2; 
+        this.nbrequipemax = -1;
+    }
+    //Constructeur avec id sans spécification du nombre d'équipes : à utiliser à compter du 09/12/25. INVERSION DE L'ORDRE DE NOM ET NBRETERRAINS PAR 
+    public Tournoi(int id, int nbrjoueursparequipe, int dureematch, int nbrrondes,  int nbreterrains, String nom, boolean ouvert, boolean fini) {
+        super(id);
+        this.nbrjoueursparequipe = nbrjoueursparequipe;
+        this.dureematch = dureematch;
+        this.nbrrondes = nbrrondes;
+        this.nom = nom;
+        this.nbreterrains = nbreterrains;
+        this.ouvert = ouvert;
+        this.fini = fini;
+        this.nbrequipemin = 2; 
+        this.nbrequipemax = -1;
+    }
 
 //SECTION METHODES
     public static void creerTournoi (Tournoi T) throws Exception{
         if (T.getNom() == null || T.getNom().isEmpty()){ 
             throw new Exception("Le nom du tournoi est obligatoire");
         }
-        if (T.getNbEquipes()<2){
+        /*if (T.getNbEquipes()<2){
             throw new Exception("Le tournoi doit avoir au moins 2 equipes");
-        }
+        }*/ // Obsolète depuis que c'est le nombre de terrains qui fixe cette valeur.
         if (T.getDureeMatch()<=0){
             throw new Exception("La duree du match doit etre positive");
         }
@@ -166,17 +192,17 @@ public class Tournoi extends ClasseMiroir {
                 int id = rs.getInt("id");
                 String nom = rs.getString("nom");
                 int nbJoueurs = rs.getInt("nbrjoueursparequipe");
-                int nbEquipes = rs.getInt("nbrequipes");
+                //int nbEquipes = rs.getInt("nbrequipes");
                 int duree = rs.getInt("dureematch");
                 int nbRondes = rs.getInt("nbrrondes");
                 int nbTerrains = rs.getInt("nbreterrains");
-                int min = rs.getInt("nbrequipemax");
-                int max = rs.getInt("nbrequipemin");
+                //int min = rs.getInt("nbrequipemax");
+                //int max = rs.getInt("nbrequipemin");
                 boolean ouvert = rs.getBoolean("ouvert");
                 boolean fini = rs.getBoolean("fini");
 
                 // On reconstruit l'objet
-                list.add(new Tournoi(id, nbJoueurs, nbEquipes, duree, max, min, nbRondes, nom, nbTerrains, ouvert, fini));
+                list.add(new Tournoi(id, nbJoueurs, duree, nbRondes, nbTerrains, nom, ouvert, fini)); // max et min supprimé, à voir...
             }
         }
         return list;
@@ -194,16 +220,16 @@ public class Tournoi extends ClasseMiroir {
             if (rs.next()) {
                 String nom = rs.getString("nom");
                 int nbJoueurs = rs.getInt("nbrjoueursparequipe");
-                int nbEquipes = rs.getInt("nbrequipes");
+                //int nbEquipes = rs.getInt("nbrequipes");
                 int duree = rs.getInt("dureematch");
                 int nbRondes = rs.getInt("nbrrondes");
                 int nbTerrains = rs.getInt("nbreterrains");
-                int min = rs.getInt("nbrequipemax");
-                int max = rs.getInt("nbrequipemin");
+                //int min = rs.getInt("nbrequipemax");
+                //int max = rs.getInt("nbrequipemin");
                 boolean ouvert = rs.getBoolean("ouvert");
                 boolean fini = rs.getBoolean("fini");
 
-                return new Tournoi(id, nbJoueurs, nbEquipes, duree, max, min, nbRondes, nom, nbTerrains, ouvert, fini);
+                return new Tournoi(id, nbJoueurs, duree, nbRondes,  nbTerrains, nom, ouvert, fini);
             }
         }
         return null; // Pas trouvé
@@ -212,19 +238,19 @@ public class Tournoi extends ClasseMiroir {
 
 @Override
 protected Statement saveSansId(Connection con) throws SQLException {
-    PreparedStatement pst = con.prepareStatement("insert into Tournoi (nbrjoueursparequipe, nbrequipes, dureematch, nbrequipemax, nbrequipemin, nbrrondes, nom, nbreterrains, ouvert, fini) \n"
+    PreparedStatement pst = con.prepareStatement("insert into Tournoi (nombrejoueursparequipe, dureematch, nbrequipemax, nbrequipemin, nbrrondes, nom, nbreterrains, ouvert, fini) \n"
             + "values(?,?,?,?,?,?,?,?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
     
     pst.setInt(1, this.nbrjoueursparequipe);
-    pst.setInt(2, this.nbrequipes);
-    pst.setInt(3, this.dureematch);
-    pst.setInt(4, this.nbrequipemax);
-    pst.setInt(5, this.nbrequipemin);
-    pst.setInt(6, this.nbrrondes);
-    pst.setString(7, this.nom);
-    pst.setInt(8, this.nbreterrains);
-    pst.setBoolean(9, this.ouvert);
-    pst.setBoolean(10, this.fini);
+    //pst.setInt(2, this.nbrequipes);
+    pst.setInt(2, this.dureematch);
+    pst.setInt(3, this.nbrequipemax);
+    pst.setInt(4, this.nbrequipemin);
+    pst.setInt(5, this.nbrrondes);
+    pst.setString(6, this.nom);
+    pst.setInt(7, this.nbreterrains);
+    pst.setBoolean(8, this.ouvert);
+    pst.setBoolean(9, this.fini);
     pst.executeUpdate();
     return pst;
 }
@@ -255,7 +281,7 @@ protected Statement saveSansId(Connection con) throws SQLException {
             pst.setInt(1, this.getId());
             ResultSet rs = pst.executeQuery();
             while (rs.next()) {
-                // Mapping simple (à adapter si tu as une méthode de mapping dédiée)
+                
                 int id = rs.getInt("id");
                 String surnom = rs.getString("surnom");
                 String sexeStr = rs.getString("sexe");
@@ -280,7 +306,7 @@ protected Statement saveSansId(Connection con) throws SQLException {
  * @throws SQLException 
  */
 public int compterJoueursInscrits() throws SQLException {
-    // Attention : Nom de table avec Majuscule 'Inscription'
+   
     String sql = "SELECT COUNT(id_joueur) FROM Inscription WHERE id_tournoi = ?";
     
     // Vérification de base pour s'assurer que l'objet est bien en BDD

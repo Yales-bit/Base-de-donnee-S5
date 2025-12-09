@@ -42,7 +42,7 @@ public class GestionSchema {
                         + ConnectionSimpleSGBD.sqlForGeneratedKeys(con, "id") + ","
                         + "nom VARCHAR(255) NOT NULL UNIQUE, "
                         + "nbrjoueursparequipe INT NOT NULL, "
-                        + "nbrequipes INT NOT NULL, "
+                        //+ "nbrequipes INT NOT NULL, "
                         + "dureematch INT NOT NULL, "
                         + "nbrequipemax INT, "
                         + "nbrequipemin INT, "
@@ -121,6 +121,16 @@ public class GestionSchema {
                         + ") "
                 );
 
+                st.executeUpdate("create table Inscription("
+                        + " idjoueur integer not null,"
+                        + " idtournoi integer not null,"
+                        + " FOREIGN KEY (idjoueur) REFERENCES Joueur(id),"
+                        + " FOREIGN KEY (idtournoi) REFERENCES Tournoi(id),"
+                        // Bonne pratique sur une table de liaison : clé primaire composite
+                        + " PRIMARY KEY (idjoueur, idtournoi)"
+                        + ") "
+                );
+
                 con.commit();
             }
         } catch (SQLException ex) {
@@ -135,12 +145,12 @@ public class GestionSchema {
         try (Statement st = con.createStatement()) {
             // Suppression des filles d'abord
             try { st.executeUpdate("drop table Composition"); } catch (SQLException ex) { System.out.println("Info: Table Composition non supprimée"); }
-            try { st.executeUpdate("drop table Matchs"); } catch (SQLException ex) { System.out.println("Info: Table Matchs non supprimée"); } // Nom au pluriel
-            try { st.executeUpdate("drop table Ronde"); } catch (SQLException ex) { System.out.println("Info: Table Ronde non supprimée"); }
+            try { st.executeUpdate("drop table Matchs"); } catch (SQLException ex) { System.out.println("Info: Table Matchs non supprimée"); } // Nom au pluriel 
             try { st.executeUpdate("drop table Points"); } catch (SQLException ex) { System.out.println("Info: Table Points non supprimée"); }
-            try { st.executeUpdate("drop table Composition"); } catch (SQLException ex) { System.out.println("Info: Table Composition non supprimée"); }
+            try { st.executeUpdate("drop table Inscription"); } catch (SQLException ex) { System.out.println("Info: Table Inscription non supprimée"); }
             // Suppression des mères ensuite
             try { st.executeUpdate("drop table Equipe"); } catch (SQLException ex) { System.out.println("Info: Table Equipe non supprimée"); }
+            try { st.executeUpdate("drop table Ronde"); } catch (SQLException ex) { System.out.println("Info: Table Ronde non supprimée"); }
             try { st.executeUpdate("drop table Terrain"); } catch (SQLException ex) { System.out.println("Info: Table Terrain non supprimée"); }
             try { st.executeUpdate("drop table Joueur"); } catch (SQLException ex) { System.out.println("Info: Table Joueur non supprimée"); }
             try { st.executeUpdate("drop table Tournoi"); } catch (SQLException ex) { System.out.println("Info: Table Tournoi non supprimée"); }
