@@ -338,12 +338,16 @@ public class Joueur extends ClasseMiroir {
 
             @Override
     protected Statement saveSansId(Connection con) throws SQLException {
-        PreparedStatement pst = con.prepareStatement("insert into Joueur (surnom, sexe, taille, scoretotal ) \n"
-                + "values(?,?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
+        PreparedStatement pst = con.prepareStatement("insert into Joueur (surnom, sexe, taille, prenom, nom, mois, jour, annee) \n"
+                + "values(?,?,?,?,?,?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
         pst.setString(1, this.surnom);
         pst.setString(2, this.sexe.toString());
         pst.setInt(3, this.taille);
-        pst.setInt(4, this.scoretotal); 
+        pst.setString(4, this.prenom);
+        pst.setString(5, this.nom);
+        pst.setInt(6, this.mois);
+        pst.setInt(7, this.jour);
+        pst.setInt(8, this.annee);
         pst.executeUpdate();
         return pst;
 

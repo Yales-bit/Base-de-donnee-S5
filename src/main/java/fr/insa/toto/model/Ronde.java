@@ -29,14 +29,14 @@ public class Ronde extends ClasseMiroir {
         this.idtournoi = idtournoi;
     }
     @Override
-protected Statement saveSansId(Connection con) throws SQLException {
-    PreparedStatement pst = con.prepareStatement("INSERT INTO Rondes (numero, statut, idtournoi) VALUES (?, ?, ?)");
-    pst.setInt(1, this.numero);
-    pst.setString(2, this.statut.toString());
-    pst.setInt(3, this.idtournoi);
-    pst.executeUpdate();
-    return pst;
-}
+    protected Statement saveSansId(Connection con) throws SQLException {
+        PreparedStatement pst = con.prepareStatement("INSERT INTO Rondes (numero, statut, idtournoi) VALUES (?, ?, ?)");
+        pst.setInt(1, this.numero);
+        pst.setString(2, this.statut.toString());
+        pst.setInt(3, this.idtournoi);
+        pst.executeUpdate();
+        return pst;
+    }
 
     // Getters et Setters
 

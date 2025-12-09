@@ -80,7 +80,7 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
         titreTournoi.setText(t.getNom());
         
         // Gestion du statut (Ouvert/Fini)
-        String statut = "En préparation";
+        String statut = "En préparation";          //Valeur a changer en recuperant le statut du tournoi
         String couleur = "grey";
         if (t.isFini()) {
             statut = "Terminé";
