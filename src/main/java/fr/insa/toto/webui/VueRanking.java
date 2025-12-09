@@ -62,14 +62,13 @@ public class VueRanking extends VerticalLayout {
         grid.addColumn(Joueur::getMois).setHeader("Mois");
         grid.addColumn(Joueur::getJour).setHeader("Jour");
         grid.addColumn(Joueur::getAnnee).setHeader("Annee");
-        
         grid.setSizeFull();
         // Ajout de bandes alternées pour la lisibilité
         grid.addThemeVariants(com.vaadin.flow.component.grid.GridVariant.LUMO_ROW_STRIPES);
     }
 
 
-    private void loadData() {
+    private void loadData() {  //ULTRA OBSOLETE
         try {
         // Appel au backend 
         List<Joueur> joueursTries = Joueur.getClassementGeneral();

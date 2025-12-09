@@ -63,7 +63,7 @@ public class VueCreation extends VerticalLayout {
                 int nbrTerrains = tfNbrTerrains.getValue() != null ? tfNbrTerrains.getValue() : 0;
                 int duree = tfDuree.getValue() != null ? tfDuree.getValue() : 0;
 
-                Tournoi t = new Tournoi(nbrJoueurs, duree, nbRondes,  nom,nbrTerrains,  false, false);
+                Tournoi t = new Tournoi(nbrJoueurs, duree, nbRondes,  nom,nbrTerrains,  true, false);
                 Tournoi.creerTournoi(t); // Le tournoi est sauvé, il a maintenant un ID
 
                 // 2. Inscription des Joueurs sélectionnés

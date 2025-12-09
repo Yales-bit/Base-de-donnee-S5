@@ -49,7 +49,7 @@ public class Tournoi extends ClasseMiroir {
     private int nbrrondes;
     private String nom;
     private int nbreterrains;
-    private boolean ouvert = false;
+    private boolean ouvert = true;
     private boolean fini = false;
 
     //constructeur maximal (avec tous les attributs), sans id

@@ -48,7 +48,7 @@ public class GestionSchema {
                         + "nbrequipemin INT, "
                         + "nbrrondes INT NOT NULL, "
                         + "nbreterrains INT NOT NULL, "
-                        + "ouvert BOOLEAN DEFAULT FALSE, "
+                        + "ouvert BOOLEAN DEFAULT TRUE, "
                         + "fini BOOLEAN DEFAULT FALSE "
                         + ")");
 
@@ -112,12 +112,12 @@ public class GestionSchema {
                 );
                 st.executeUpdate("create table Points ( " //Pour la gestion multi-tournoi
                         + " idjoueur integer not null,"
-                        + " idequipe integer not null,"
-                        + " points integer not null,"
-                        + " FOREIGN KEY (idequipe) REFERENCES Equipe(id),"
+                        + " idtournoi integer not null,"
+                        + " points integer not null DEFAULT 0,"
+                        + " FOREIGN KEY (idtournoi) REFERENCES Tournoi(id),"
                         + " FOREIGN KEY (idjoueur) REFERENCES Joueur(id),"
                         // Bonne pratique sur une table de liaison : clé primaire composite
-                        + " PRIMARY KEY (idjoueur, idequipe)"
+                        + " PRIMARY KEY (idjoueur, idtournoi)"
                         + ") "
                 );
 
