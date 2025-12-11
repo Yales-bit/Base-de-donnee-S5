@@ -41,20 +41,21 @@ public class InterfacePrincipale extends AppLayout {
     public InterfacePrincipale() {
 
         // --- MENU DE GAUCHE ---
-        /*
+        
+        this.addToDrawer(new Menu());
         this.addToDrawer(new Button("Tournoi"));
         this.addToDrawer(new Button("Classement"));
         this.addToDrawer(new Button("Participants"));
         this.addToDrawer(new Button("Ronde"));
         this.addToDrawer(new Button("Règle"));
-        */
+        
         VerticalLayout menu = new VerticalLayout();
  
         menu.add(new RouterLink("Classement", VueRanking.class));   // 
 
 
         addToDrawer(menu);
-        DrawerToggle toggle = new DrawerToggle();
+        DrawerToggle toggle = new DrawerToggle(); //permettre de replier 
         this.addToNavbar(toggle,new H2("Menu"));
         
          

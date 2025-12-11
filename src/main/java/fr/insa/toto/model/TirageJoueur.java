@@ -35,14 +35,14 @@ import fr.insa.toto.model.Joueur;
 import static fr.insa.toto.model.Joueur.getNombreJoueurs;
 import fr.insa.toto.model.Tournoi;
 
-// pas encore opérationnel du tout 
+// pas encore opérationnel 
 public class TirageJoueur {
 
     public static void main(String[] args) {
         try {
             int nbJoueurs = getNombreJoueurs();
             System.out.println("Nombre de joueurs : " + nbJoueurs);
-     //       int nbrequipe = 2*Tournoi.getNbEquipes(); // récupérer le nbr d'équipes
+     //       int nbrequipe = 2*t.getNbrTerrains(); // récupérer le nbr d'équipes
 
             List<Integer> joueurin = creerListe(nbJoueurs);
 

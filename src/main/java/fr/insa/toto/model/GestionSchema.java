@@ -130,6 +130,7 @@ public class GestionSchema {
                         + " PRIMARY KEY (idjoueur, idtournoi)"
                         + ") "
                 );
+                
 
                 con.commit();
             }
