@@ -35,6 +35,15 @@ public class GestionSchema {
                         + " annee integer "
                         + ") "
                 );
+                
+                            // Joueur : OK
+                st.executeUpdate("create table Utilisateur ( "
+                        + ConnectionSimpleSGBD.sqlForGeneratedKeys(con, "id") + ","
+                        + " identifiant varchar(30) not null unique,"
+                        + " mdp varchar(20) not null,"
+                        + " role integer not null, "
+                        + ") "
+                );
 
                 // Tournoi : CORRECTION (Utilisation de la méthode standard pour l'ID)
                 // Note: J'utilise 'id' au lieu de 'idtournoi' pour simplifier et rester cohérent avec ClasseMiroir
@@ -155,6 +164,8 @@ public class GestionSchema {
             try { st.executeUpdate("drop table Terrain"); } catch (SQLException ex) { System.out.println("Info: Table Terrain non supprimée"); }
             try { st.executeUpdate("drop table Joueur"); } catch (SQLException ex) { System.out.println("Info: Table Joueur non supprimée"); }
             try { st.executeUpdate("drop table Tournoi"); } catch (SQLException ex) { System.out.println("Info: Table Tournoi non supprimée"); }
+            try { st.executeUpdate("drop table Joueur"); } catch (SQLException ex) { System.out.println("Info: Table Joueur non supprimée"); }
+        
         }
     }
 

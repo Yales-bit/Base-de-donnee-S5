@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -96,8 +97,22 @@ public Utilisateur(int id, String identifiant,String mdp, int role){
         return res;
     }
     //supp utilisateur
-    // CONTINUER ICI 20.06  
-    
-    
-    
+   
+  public static Optional<Utilisateur> findByIdentifiantMdp(Connection con, String identifiant, String mdp) throws SQLException{
+      try (PreparedStatement pst = con.prepareStatement(
+            "select from utilisateur where identifiant = ? and mdp = ?")){
+          pst.setString(1, identifiant);
+          pst.setString(2, mdp);
+          ResultSet res = pst.executeQuery();
+          if(res.next()){
+              int id = res.getInt(1);
+              int role = res.getInt(2);
+              return Optional.of(new Utilisateur(id,identifiant,mdp,role));
+          }else{
+              return Optional.empty();
+          }
+        
+          
+      }
+  }
 }
