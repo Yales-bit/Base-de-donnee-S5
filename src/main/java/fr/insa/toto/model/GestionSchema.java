@@ -36,7 +36,7 @@ public class GestionSchema {
                         + ") "
                 );
                 
-                            // Joueur : OK
+                          
                 st.executeUpdate("create table Utilisateur ( "
                         + ConnectionSimpleSGBD.sqlForGeneratedKeys(con, "id") + ","
                         + " identifiant varchar(30) not null unique,"
@@ -164,7 +164,7 @@ public class GestionSchema {
             try { st.executeUpdate("drop table Terrain"); } catch (SQLException ex) { System.out.println("Info: Table Terrain non supprimée"); }
             try { st.executeUpdate("drop table Joueur"); } catch (SQLException ex) { System.out.println("Info: Table Joueur non supprimée"); }
             try { st.executeUpdate("drop table Tournoi"); } catch (SQLException ex) { System.out.println("Info: Table Tournoi non supprimée"); }
-            try { st.executeUpdate("drop table Joueur"); } catch (SQLException ex) { System.out.println("Info: Table Joueur non supprimée"); }
+            try { st.executeUpdate("drop table Utilisateur"); } catch (SQLException ex) { System.out.println("Info: Table Utilisateur non supprimée"); }
         
         }
     }

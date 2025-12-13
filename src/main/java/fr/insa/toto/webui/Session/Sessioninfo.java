@@ -42,11 +42,15 @@ public class Sessioninfo implements Serializable {
     return curInfo;
     }
     
-    public static void setUser(Utilisateur u){
+    public static void login(Utilisateur u){
         Sessioninfo curInfo = getOrCreate();
         curInfo.curUser = u;
     }
-    
+
+    public static void logout(){
+        Sessioninfo curInfo = getOrCreate();
+        curInfo.curUser = null;
+    }
     //pour dire sil y a ou non utilisateur :
     public static Optional<Utilisateur> curUser(){
         Utilisateur u = getOrCreate().curUser;

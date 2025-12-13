@@ -34,6 +34,9 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.router.RouterLink;
+import fr.insa.toto.webui.Session.Login;
+import fr.insa.toto.webui.Session.Logout;
+import fr.insa.toto.webui.Session.Sessioninfo;
 
 @Route("InterfacePrincipale")
 public class InterfacePrincipale extends AppLayout {
@@ -57,6 +60,13 @@ public class InterfacePrincipale extends AppLayout {
         addToDrawer(menu);
         DrawerToggle toggle = new DrawerToggle(); //permettre de replier 
         this.addToNavbar(toggle,new H2("Menu"));
+        
+        if (Sessioninfo.userConnected()){     // Si il y a un utilisater connecté possibilité de se déconnecter
+            this.addToNavbar(new Logout());
+            
+        }else {
+            this.addToNavbar(new Login());
+        }
         
          
         

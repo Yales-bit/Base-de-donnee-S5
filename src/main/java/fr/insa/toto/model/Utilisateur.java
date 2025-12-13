@@ -76,7 +76,7 @@ public Utilisateur(int id, String identifiant,String mdp, int role){
         return role ; // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-    private String getIdentifiant() {
+    public String getIdentifiant() {
          return identifiant ;
     }
 
@@ -115,4 +115,11 @@ public Utilisateur(int id, String identifiant,String mdp, int role){
           
       }
   }
+
+    /**
+     * @param role the role to set
+     */
+    public void setRole(int role) {
+        this.role = role;
+    }
 }

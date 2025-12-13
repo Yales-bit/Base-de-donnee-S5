@@ -18,6 +18,7 @@ along with CoursBeuvron.  If not, see <http://www.gnu.org/licenses/>.
  */
 package fr.insa.toto.webui.Session;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -56,11 +57,13 @@ public class Login extends HorizontalLayout {
         if (trouve.isEmpty()){
             Notification.show("Identifiant ou mot de passe incorrect");
         }else{
-            Sessioninfo.setUser(trouve.get());
+            Sessioninfo.login(trouve.get());
+            UI.getCurrent().refreshCurrentRoute(true); // permet de rafraichir la page 
         }
         
         } catch (SQLException ex){
-            System.getLogger(Login.class.getName()).log(System.Logger.Level.ERROR, (String)null,ex);
+            Notification.show("Problème"+ex.getLocalizedMessage());
+            
         }
         // SUITE PROCHAINEMENT
     }
