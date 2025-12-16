@@ -38,6 +38,29 @@ public class Ronde extends ClasseMiroir {
         return pst;
     }
 
+    public static Ronde getRondeParNumero (int idTournoi, int numero) throws SQLException {
+        try (Connection con = ConnectionPool.getConnection()) {
+            PreparedStatement pst = con.prepareStatement("SELECT + FROM Ronde WHERE idtournoi = ? AND numero = ?");
+            pst.setInt(1, idTournoi);
+            pst.setInt(2, numero);
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                return new Ronde(rs.getInt("id"), rs.getInt("numero"), StatutRonde.valueOf(rs.getString("statut")), rs.getInt("idtournoi"));
+            }
+            return null;
+        }
+    }
+
+    public void updateStatutRonde (StatutRonde nouveauStatut) throws SQLException {
+      this.statut = nouveauStatut;
+      try (Connection con = ConnectionPool.getConnection()) {
+        PreparedStatement pst = con.prepareStatement("UPDATE Ronde SET statut = ? WHERE id = ?");
+        pst.setString(1, nouveauStatut.toString());
+        pst.setInt(2, this.id);
+        pst.executeUpdate();
+      }  
+    }
+
     // Getters et Setters
 
     public int getNumero() {

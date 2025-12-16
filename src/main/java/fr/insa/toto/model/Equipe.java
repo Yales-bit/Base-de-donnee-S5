@@ -29,6 +29,12 @@ public class Equipe extends ClasseMiroir {
         this.score = score;
         this.idronde = idronde;
     }
+    public Equipe(int idequipe, String nom, int idronde) {
+        super(idequipe);
+        this.nom = nom;
+        this.score = 0;
+        this.idronde = idronde;
+    }
 
     @Override
     protected Statement saveSansId(Connection con) throws SQLException {
