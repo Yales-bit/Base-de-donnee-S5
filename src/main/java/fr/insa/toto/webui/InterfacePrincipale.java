@@ -38,7 +38,7 @@ import fr.insa.toto.webui.Session.Login;
 import fr.insa.toto.webui.Session.Logout;
 import fr.insa.toto.webui.Session.Sessioninfo;
 
-@Route("InterfacePrincipale")
+@Route("")
 public class InterfacePrincipale extends AppLayout {
 
     public InterfacePrincipale() {

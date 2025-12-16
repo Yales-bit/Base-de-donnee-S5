@@ -37,7 +37,7 @@ import fr.insa.beuvron.vaadin.utils.dataGrid.ResultSetGrid;
 
 
 
-@Route(value = "")
+@Route(value = "vueprincipale")
 @PageTitle("vueprincipale")
 public class VuePrincipale extends VerticalLayout {
 
