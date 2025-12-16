@@ -53,7 +53,8 @@ public class InterfacePrincipale extends AppLayout {
         this.addToDrawer(new Button("Règle"));
         
         VerticalLayout menu = new VerticalLayout();
- 
+        
+        //menu.add(new RouterLink("Tournoi", VueDetailsTournoi.class)); 
         menu.add(new RouterLink("Classement", VueRanking.class));   // 
 
 

@@ -61,12 +61,13 @@ public Utilisateur(int id, String identifiant,String mdp, int role){
 
     @Override
     protected Statement saveSansId(Connection con) throws SQLException {
-        PreparedStatement insert = con.prepareStatement( "insert into utilisateur (identifiant,mdp,role) values (?,?,?)",
+        PreparedStatement insert = con.prepareStatement( "insert into Utilisateur (identifiant,mdp,role) values (?,?,?)",
             PreparedStatement.RETURN_GENERATED_KEYS);
         insert.setString(1,this.getIdentifiant());
         insert.setString(2,this.getMdp());
         insert.setInt(3,this.getRole());
         insert.executeUpdate();
+        System.out.println("utilisateur créé sans id");
         return insert;
         
     }
@@ -86,7 +87,7 @@ public Utilisateur(int id, String identifiant,String mdp, int role){
     
     public static List<Utilisateur> TousLesUtilisateurs(Connection con)throws SQLException {
         List<Utilisateur> res = new ArrayList<>();
-        try (PreparedStatement pst = con.prepareStatement( "select id, identifiant, mdp, rolefrom utilisateur")){
+        try (PreparedStatement pst = con.prepareStatement( "select id, identifiant, mdp, role from Utilisateur")){
             try (ResultSet allU = pst.executeQuery()){
                 while(allU.next()){
                     res.add(new Utilisateur(allU.getInt("id"), allU.getString("identifiant"),
@@ -100,7 +101,7 @@ public Utilisateur(int id, String identifiant,String mdp, int role){
    
   public static Optional<Utilisateur> findByIdentifiantMdp(Connection con, String identifiant, String mdp) throws SQLException{
       try (PreparedStatement pst = con.prepareStatement(
-            "select from utilisateur where identifiant = ? and mdp = ?")){
+            "select id,role from Utilisateur where identifiant = ? and mdp = ?")){
           pst.setString(1, identifiant);
           pst.setString(2, mdp);
           ResultSet res = pst.executeQuery();

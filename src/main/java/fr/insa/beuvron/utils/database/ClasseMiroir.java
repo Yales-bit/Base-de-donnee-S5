@@ -136,7 +136,8 @@ public abstract class ClasseMiroir implements Serializable {
         }
         Statement saveAllButId = this.saveSansId(con);
         try (ResultSet rid = saveAllButId.getGeneratedKeys()) {
-            rid.next();
+            boolean ok = rid.next();
+            System.out.println("found key : " + ok);
             this.id = rid.getInt(1);
             return this.id;
         }

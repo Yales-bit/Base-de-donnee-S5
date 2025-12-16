@@ -63,6 +63,7 @@ public class Login extends HorizontalLayout {
         
         } catch (SQLException ex){
             Notification.show("Problème"+ex.getLocalizedMessage());
+            ex.printStackTrace();
             
         }
         // SUITE PROCHAINEMENT

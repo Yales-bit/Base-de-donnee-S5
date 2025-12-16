@@ -41,7 +41,7 @@ public class GestionSchema {
                         + ConnectionSimpleSGBD.sqlForGeneratedKeys(con, "id") + ","
                         + " identifiant varchar(30) not null unique,"
                         + " mdp varchar(20) not null,"
-                        + " role integer not null, "
+                        + " role integer not null "
                         + ") "
                 );
 

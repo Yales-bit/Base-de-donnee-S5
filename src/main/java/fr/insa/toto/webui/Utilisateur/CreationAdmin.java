@@ -42,29 +42,27 @@ import java.util.List;
  * @author vicbl
  */
 @Route(value = "CreationAdmin", layout = InterfacePrincipale.class)
-@PageTitle("Créer un compte") 
+@PageTitle("Créer un compte")
 
-public class CreationAdmin extends FormLayout{
-    
+public class CreationAdmin extends FormLayout {
+
     private TextField identifiant;
     private PasswordField mdp;
     private ComboBox<String> role;
     private Button save;
-    
-    
-    
-    public CreationAdmin(){
-       this.identifiant = new TextField("Identifiants");
-       this.mdp = new PasswordField("Mot de passe");
-       this.role = new ComboBox<String>("role");
-       this.role.setItems(List.of("utilisateur","administrateur"));
-       this.save = new Button("sauvegarder");
-       this.save.addClickListener((t)->{
-           this.doSave();
-       });
-       PasswordField confirmMdp = new PasswordField("Confirmer le mot de passe");
-      
-            // Conteneur VerticalLayout pour centrer le formulaire
+
+    public CreationAdmin() {
+        this.identifiant = new TextField("Identifiants");
+        this.mdp = new PasswordField("Mot de passe");
+        this.role = new ComboBox<String>("role");
+        this.role.setItems(List.of("utilisateur", "administrateur"));
+        this.save = new Button("sauvegarder");
+        this.save.addClickListener((t) -> {
+            this.doSave();
+        });
+        PasswordField confirmMdp = new PasswordField("Confirmer le mot de passe");
+
+        // Conteneur VerticalLayout pour centrer le formulaire
         VerticalLayout container = new VerticalLayout();
         container.setSizeFull();
         container.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.CENTER);
@@ -72,34 +70,34 @@ public class CreationAdmin extends FormLayout{
 
         // Ajouter le container dans ce FormLayout (ou remplacer l'usage de 'this' par 'container' dans ton UI)
         add(container);
-	add(new H1("Connexion"));
-        
-FormLayout formLayout = new FormLayout();
-this.addFormRow(this.identifiant);
-this.addFormRow(this.mdp, confirmMdp);
-this.addFormRow(this.role);
-this.addFormRow(this.save);
+        add(new H1("Connexion"));
 
+        FormLayout formLayout = new FormLayout();
+        this.addFormRow(this.identifiant);
+        this.addFormRow(this.mdp, confirmMdp);
+        this.addFormRow(this.role);
+        this.addFormRow(this.save);
 
     }
 
     public void doSave() {
-    try (Connection con = ConnectionPool.getConnection()){
-       String identifiant = this.identifiant.getValue();
-       String mdp = this.mdp.getValue();
-       int role = 2;
-       if (this.role.getValue() != null && this.role.getValue().equals("admin")) {
-        role = 1;
-    }
-       Utilisateur u = new Utilisateur(identifiant, mdp, role);
-       u.saveInDB(con);
-       Notification.show("Utilisateur "+ identifiant+" créé");
-       
-    }catch (SQLException ex){
-        Notification.show("Probleme : "+ ex.getLocalizedMessage());
-        
-    }
-    
+        try (Connection con = ConnectionPool.getConnection()) {
+            String identifiant = this.identifiant.getValue();
+            String mdp = this.mdp.getValue();
+            int role = 2;
+            if (this.role.getValue() != null && this.role.getValue().equals("adminstrateur")) {
+                role = 1;
+            }
+            Utilisateur u = new Utilisateur(identifiant, mdp, role);
+            u.saveInDB(con);
+            Notification.show("utilisateur " + identifiant + " créé");
+
+        } catch (SQLException ex) {
+            Notification.show("Probleme : " + ex.getLocalizedMessage());
+            ex.printStackTrace();
+
+        }
+
     }
 
 }
