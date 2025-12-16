@@ -33,6 +33,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -375,6 +376,96 @@ public Ronde demarrerPremiereRonde() throws Exception {
 
     return nouvelleRonde;
 }
+
+private void genererMatchsPourRonde(Ronde ronde) throws Exception {
+    List<Joueur> joueursInscrits = this.getJoueursInscrits(); //recup
+    Collections.shuffle(joueursInscrits); // melange
+
+    int nbJoueursParEquipe = this.getNbrJoueursParEquipe();
+    int nbJoueursParMatch = nbJoueursParEquipe *2;
+    int compteurMatch = 1;
+
+    //boucle de creation
+    for (int i = 0 ; i < joueursInscrits.size()- nbJoueursParMatch ; i += nbJoueursParMatch) {
+        List<Joueur> groupe1 = joueursInscrits.subList(i, i + nbJoueursParMatch);
+        List<Joueur> groupe2 = joueursInscrits.subList(i + nbJoueursParMatch, i + nbJoueursParMatch * 2);
+
+        try (Connection con = ConnectionPool.getConnection()) {
+            //equipe 1 
+            Equipe eq1 = new Equipe ("R"+ronde.getNumero()+"-M"+compteurMatch+"-A", ronde.getId());
+            eq1.saveInDB(con);
+            eq1.ajouterJoueurs(groupe1); // A DEFINIR
+
+            //equipe 2
+            Equipe eq2 = new Equipe ("R"+ronde.getNumero()+"-M"+compteurMatch+"-B", ronde.getId());
+            eq2.saveInDB(con);
+            eq2.ajouterJoueurs(groupe2); // A DEFINIR
+
+            //match
+            Match m = new Match(ronde, eq1, eq2); 
+            m.saveInDB(con);
+            compteurMatch++;
+        }
+        
+        
+    }
+    System.out.println("Matchs générés pour la ronde " + ronde.getNumero());   
+}
+
+public void lancerTournoi() throws Exception {
+    if (!this.estNombreJoueursSuffisant()) {
+        throw new Exception(
+            "Impossible de démarrer le tournoi. Nombre de joueurs insuffisant : " +
+            this.compterJoueursInscrits() + " inscrits. Minimum requis pour former 2 équipes : " + 
+            (2 * this.getNbrJoueursParEquipe()) + " (" + this.getNbrJoueursParEquipe() + " joueurs par équipe)."
+        );
+    }//fermeture
+    this.setOuvert(false);
+    try (Connection con = ConnectionPool.getConnection()) {
+        this.updateStatutTournoi(con, "En cours"); // A DEFINIR
+    }
+    //creation de toutes les rondes (vides)
+    int totalRondes = this.getNbrRondes();
+
+    for (int i =1; i <= totalRondes; i++) {
+        StatutRonde statutInit = (i==1) ? StatutRonde.EN_COURS : StatutRonde.EN_ATTENTE;
+        Ronde r = new Ronde(i, this.getId(), statutInit);
+
+        try (Connection con = ConnectionPool.getConnection()) {
+            r.saveInDB(con);
+        }
+        //on lance seulement la ronde 1
+        if (i == 1) {
+            this.genererMatchsPourRonde(r);
+        }
+    }
+    System.out.println("Tournoi demarré !"+totalRondes+" rondes créees.");
+}
+
+public void passerRondeSuivante() throws Exception {
+    // trouver la dernière ronde active (celle qui est EN COURS ou TERMINEE avec le plus grand numero)
+    Ronde derniereRonde = Ronde.getDerniereRonde(this.getId()); // A DEFINIR
+
+    if (derniereRonde.getStatut() != StatutRonde.EN_COURS) {
+        throw new Exception("Impossible de passer de ronde. La ronde " + derniereRonde.getNumero() + " n'est pas encore terminée.");
+    }
+    
+    int numeroProchaineRonde = derniereRonde.getNumero() + 1;
+
+    // recuperer la prochaine ronde (qui existe mais qui n'a pas encore commencé)
+    Ronde prochaineRonde = Ronde.getRondeParNumero(this.getId(), numeroProchaineRonde);
+
+    if (prochaineRonde == null){
+        // le tournoie est terminé, à gérer
+        throw new Exception("Le tournoi est terminé !");
+    }
+
+    System.out.println("Passage de la ronde " + derniereRonde.getNumero() + " à la ronde " + prochaineRonde.getNumero() + ".");
+
+    prochaineRonde.updateStatutRonde(StatutRonde.EN_COURS);
+    this.genererMatchsPourRonde(prochaineRonde);
+}
+
 
     public int getNbrJoueursParEquipe() {
         return nbrjoueursparequipe;

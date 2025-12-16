@@ -21,7 +21,12 @@ public class Match extends ClasseMiroir {
         this.terrain = terrain;
         this.statut = StatutMatch.EN_ATTENTE; // Par défaut, un nouveau match est "en cours"
     }
-
+    public Match(Ronde ronde, Equipe equipe1, Equipe equipe2) {
+        this.ronde = ronde;
+        this.equipe1 = equipe1;
+        this.equipe2 = equipe2;
+        this.statut = StatutMatch.EN_ATTENTE; // Par défaut, un nouveau match est "en cours"
+    }
     @Override
 protected Statement saveSansId(Connection con) throws SQLException {
     PreparedStatement pst = con.prepareStatement("INSERT INTO Match (idronde, idequipe1, idequipe2, idterrain, statut) VALUES (?, ?, ?, ?, ?)");
