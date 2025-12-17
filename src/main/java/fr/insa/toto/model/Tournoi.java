@@ -395,38 +395,64 @@ public Ronde demarrerPremiereRonde() throws Exception {
 }
 
 private void genererMatchsPourRonde(Ronde ronde) throws Exception {
-    List<Joueur> joueursInscrits = this.getJoueursInscrits(); //recup
-    Collections.shuffle(joueursInscrits); // melange
+    List<Joueur> joueursInscrits = this.getJoueursInscrits(); 
+    
+    if (joueursInscrits.size() < this.getNbrJoueursParEquipe() * 2) {
+        throw new Exception("Pas assez de joueurs inscrits pour générer un match.");
+    }
+
+    Collections.shuffle(joueursInscrits); // mélange aléatoire
 
     int nbJoueursParEquipe = this.getNbrJoueursParEquipe();
-    int nbJoueursParMatch = nbJoueursParEquipe *2;
+    int nbJoueursParMatch = nbJoueursParEquipe * 2;
     int compteurMatch = 1;
 
-    //boucle de creation
-    for (int i = 0 ; i < joueursInscrits.size()- nbJoueursParMatch ; i += nbJoueursParMatch) {
-        List<Joueur> groupe1 = joueursInscrits.subList(i, i + nbJoueursParMatch);
-        List<Joueur> groupe2 = joueursInscrits.subList(i + nbJoueursParMatch, i + nbJoueursParMatch * 2);
+    Connection con = null;
+    try {
+        con = ConnectionPool.getConnection();
+        // On veut que tous les matchs soient créés d'un coup, ou rien du tout si ça plante.
+        con.setAutoCommit(false); 
 
-        try (Connection con = ConnectionPool.getConnection()) {
-            //equipe 1 
-            Equipe eq1 = new Equipe ("R"+ronde.getNumero()+"-M"+compteurMatch+"-A", ronde.getId());
+        // On itère tant que l'index 'i' permet de prendre un bloc complet de 'nbJoueursParMatch'
+        for (int i = 0; i <= joueursInscrits.size() - nbJoueursParMatch; i += nbJoueursParMatch) {
+
+            List<Joueur> groupe1 = joueursInscrits.subList(i, i + nbJoueursParEquipe);
+            
+            List<Joueur> groupe2 = joueursInscrits.subList(i + nbJoueursParEquipe, i + nbJoueursParMatch);
+
+            // Equipe 1 
+            String nomEq1 = "T" + this.getId() + "-R" + ronde.getNumero() + "-M" + compteurMatch + "-A";
+            Equipe eq1 = new Equipe(nomEq1, ronde.getId());
             eq1.saveInDB(con);
-            eq1.ajouterJoueurs(groupe1); // A DEFINIR
+            eq1.ajouterJoueurs(groupe1);
 
-            //equipe 2
-            Equipe eq2 = new Equipe ("R"+ronde.getNumero()+"-M"+compteurMatch+"-B", ronde.getId());
+            // Equipe 2 
+            String nomEq2 = "T" + this.getId() + "-R" + ronde.getNumero() + "-M" + compteurMatch + "-B";
+            Equipe eq2 = new Equipe(nomEq2, ronde.getId());
             eq2.saveInDB(con);
-            eq2.ajouterJoueurs(groupe2); // A DEFINIR
-
-            //match
-            Match m = new Match(ronde, eq1, eq2); 
+            eq2.ajouterJoueurs(groupe2); 
+            Match m = new Match(ronde, eq1, eq2);
             m.saveInDB(con);
+
             compteurMatch++;
         }
-        
-        
-    }
-    System.out.println("Matchs générés pour la ronde " + ronde.getNumero());   
+
+        con.commit();
+        System.out.println((compteurMatch - 1) + " matchs générés pour la ronde " + ronde.getNumero());
+
+    } catch (Exception e) {
+        // EN CAS D'ERREUR : On annule tout ce qui a été fait dans cette méthode
+        if (con != null) {
+            try { con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+        }
+        // On relance l'erreur pour qu'elle soit gérée plus haut (par l'interface graphique)
+        throw new Exception("Erreur lors de la génération des matchs de la ronde " + ronde.getNumero() + ".", e);
+    } finally {
+        if (con != null) {
+            con.setAutoCommit(true); 
+            con.close();
+        }
+    }  
 }
 
 public void lancerTournoi() throws Exception {
@@ -461,7 +487,7 @@ public void lancerTournoi() throws Exception {
 
 public void passerRondeSuivante() throws Exception {
     // trouver la dernière ronde active (celle qui est EN COURS ou TERMINEE avec le plus grand numero)
-    Ronde derniereRonde = Ronde.getDerniereRonde(this.getId()); // A DEFINIR
+    Ronde derniereRonde = Ronde.getDerniereRonde(this.getId()); 
 
     if (derniereRonde.getStatut() != StatutRonde.EN_COURS) {
         throw new Exception("Impossible de passer de ronde. La ronde " + derniereRonde.getNumero() + " n'est pas encore terminée.");
