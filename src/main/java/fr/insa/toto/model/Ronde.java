@@ -2,6 +2,7 @@ package fr.insa.toto.model;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class Ronde extends ClasseMiroir {
     }
     @Override
     protected Statement saveSansId(Connection con) throws SQLException {
-        PreparedStatement pst = con.prepareStatement("INSERT INTO Rondes (numero, statut, idtournoi) VALUES (?, ?, ?)");
+        PreparedStatement pst = con.prepareStatement("INSERT INTO Ronde (numero, statut, idtournoi) VALUES (?, ?, ?)");
         pst.setInt(1, this.numero);
         pst.setString(2, this.statut.toString());
         pst.setInt(3, this.idtournoi);
@@ -51,6 +52,53 @@ public class Ronde extends ClasseMiroir {
         }
     }
 
+    public static Ronde getRonde(int id) throws SQLException {
+        String sql = "SELECT * FROM Ronde WHERE id = ?";
+        try (Connection con = ConnectionPool.getConnection();
+             PreparedStatement pst = con.prepareStatement(sql)) {
+            pst.setInt(1, id);
+            try (ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    // On reconstruit l'objet Ronde à partir des données BDD
+                    return new Ronde(
+                        rs.getInt("id"),
+                        rs.getInt("numero"),
+                        // Attention : s'assurer que la chaîne en BDD correspond exactement à l'enum
+                        StatutRonde.valueOf(rs.getString("statut")), 
+                        rs.getInt("idtournoi")
+                    );
+                }
+            }
+        }
+        return null;
+    }
+
+    public static Ronde getDerniereRonde(int idTournoi) throws SQLException {
+    // On sélectionne les rondes du tournoi, on trie par numéro décroissant (DESC)
+    // et on ne prend que la première (LIMIT 1) -> c'est donc la plus récente.
+    String query = "SELECT * FROM Ronde WHERE idtournoi = ? ORDER BY numero DESC LIMIT 1";
+    
+    try (Connection con = ConnectionPool.getConnection();
+         PreparedStatement pst = con.prepareStatement(query)) {
+        
+        pst.setInt(1, idTournoi);
+        
+        try (ResultSet rs = pst.executeQuery()) {
+            if (rs.next()) {
+                // On reconstruit l'objet Ronde à partir des données BDD
+                return new Ronde(
+                    rs.getInt("id"),
+                    rs.getInt("numero"),
+                    // Attention : s'assurer que la chaîne en BDD correspond exactement à l'enum
+                    StatutRonde.valueOf(rs.getString("statut")), 
+                    rs.getInt("idtournoi")
+                );
+            }
+        }
+    }
+    return null; // Aucune ronde trouvée pour ce tournoi
+}
+
     public void updateStatutRonde (StatutRonde nouveauStatut) throws SQLException {
       this.statut = nouveauStatut;
       try (Connection con = ConnectionPool.getConnection()) {
@@ -60,6 +108,31 @@ public class Ronde extends ClasseMiroir {
         pst.executeUpdate();
       }  
     }
+
+ 
+public boolean estTerminee() throws SQLException {
+    if (this.getId() == -1) return false;
+
+    // On compte le nombre de matchs de cette ronde qui NE sont PAS terminés.
+    String sql = "SELECT COUNT(*) FROM Matchs WHERE idronde = ? AND statut != ?";
+    
+    try (Connection con = ConnectionPool.getConnection();
+         PreparedStatement pst = con.prepareStatement(sql)) {
+        
+        pst.setInt(1, this.getId());
+        // Attention à bien utiliser la valeur String de l'enum
+        pst.setString(2, StatutMatch.TERMINE.toString());
+        
+        try (ResultSet rs = pst.executeQuery()) {
+            if (rs.next()) {
+                int nbMatchsNonTermines = rs.getInt(1);
+                // Si le compte est 0, cela veut dire que tous les matchs sont terminés.
+                return nbMatchsNonTermines == 0;
+            }
+        }
+    }
+    return false; // Par sécurité 
+}
 
     // Getters et Setters
 

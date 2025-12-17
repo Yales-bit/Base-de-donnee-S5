@@ -2,10 +2,14 @@ package fr.insa.toto.model;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 import fr.insa.beuvron.utils.database.ClasseMiroir;
+import fr.insa.beuvron.utils.database.ConnectionPool;
 
 public class Equipe extends ClasseMiroir {
     private int idequipe;
@@ -35,17 +39,76 @@ public class Equipe extends ClasseMiroir {
         this.score = 0;
         this.idronde = idronde;
     }
+public void ajouterJoueurs(List<Joueur> joueurs) throws Exception {
+        if (this.getId() == -1) {
+             throw new Exception("Erreur technique : L'équipe doit être sauvegardée en base avant d'y ajouter des joueurs.");
+        }
 
-    @Override
+        String sql = "INSERT INTO Composition (idequipe, idjoueur) VALUES (?, ?)";
+        
+        try (Connection con = ConnectionPool.getConnection();
+             PreparedStatement pst = con.prepareStatement(sql)) {
+            
+            // On utilise le "batch" (traitement par lot) pour être plus efficace
+            for (Joueur j : joueurs) {
+                pst.setInt(1, this.getId());
+                pst.setInt(2, j.getId());
+                pst.addBatch(); // Ajoute à la liste des requêtes à exécuter
+            }
+            // Exécute toutes les insertions d'un coup
+            pst.executeBatch(); 
+        }
+    }
+    public List<Joueur> getJoueurs() throws Exception { //renvoit tous les joueurs d'une equipe
+     List<Joueur> joueurs = new ArrayList<>();
+        String sql = "SELECT j.* FROM Joueur j " +
+                 "JOIN Composition c ON j.id = c.idjoueur " +
+                 "WHERE c.idequipe = ?"; try (Connection con = ConnectionPool.getConnection();
+         PreparedStatement pst = con.prepareStatement(sql)) {
+        pst.setInt(1, this.getId());
+        try (ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                // On suppose que les données en base sont valides (énums, dates...)
+                Joueur j = new Joueur(
+                    rs.getInt("id"), rs.getString("surnom"),
+                    StatutSexe.valueOf(rs.getString("sexe")), rs.getInt("taille"),
+                    rs.getString("prenom"), rs.getString("nom"),
+                    rs.getInt("mois"), rs.getInt("jour"), rs.getInt("annee")
+                );
+                joueurs.add(j);
+            }
+        }
+    }
+    return joueurs;
+}
+public static Equipe getEquipeById(int id) throws SQLException {
+    String sql = "SELECT * FROM Equipe WHERE id = ?";
+    try (Connection con = ConnectionPool.getConnection();
+         PreparedStatement pst = con.prepareStatement(sql)) {
+        pst.setInt(1, id);
+        try (ResultSet rs = pst.executeQuery()) {
+            if (rs.next()) {
+                // On reconstruit l'objet complet
+                return new Equipe(
+                    rs.getInt("id"),
+                    rs.getString("nom"),
+                    rs.getInt("score"),
+                    rs.getInt("idronde")
+                );
+            }
+        }
+    }
+    return null; // Pas trouvée
+}
+@Override
     protected Statement saveSansId(Connection con) throws SQLException {
-        PreparedStatement pst = con.prepareStatement("insert into Equipes (surnom, categorie, taille) \n"
-                + "values(?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
+        // Utilisation du nom de table singulier 'Equipe' et des bonnes colonnes
+        PreparedStatement pst = con.prepareStatement("INSERT INTO Equipe (nom, score, idronde) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
         pst.setString(1, this.nom);
         pst.setInt(2, this.score);
         pst.setInt(3, this.idronde);
         pst.executeUpdate();
         return pst;
-
     }
 
     // Getters and Setters

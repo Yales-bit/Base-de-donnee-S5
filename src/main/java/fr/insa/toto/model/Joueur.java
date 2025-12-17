@@ -44,6 +44,7 @@ public class Joueur extends ClasseMiroir {
     private String surnom;
     private StatutSexe sexe;
     private int taille;
+    private int pointsDansTournoi = 0;
 
     //Constructeur utilisé quand on ne connait pas encore l'id du joueur (il vient d'être créé) A SUPPRIMER
     public Joueur(String surnom, StatutSexe sexe, int taille) {
@@ -277,7 +278,7 @@ public class Joueur extends ClasseMiroir {
         return null; // Pas trouvé
     }
 
-    public void ajouterPoints(int points) { this.scoretotal += points; }
+   /* public void ajouterPoints(int points) { this.scoretotal += points; }
     public void update(Connection con) throws SQLException, Exception {
         if (this.getId() == -1) {
             throw new Exception("Impossible de mettre à jour ce joueur : il n'a pas encore été sauvegardé en base de données (son ID est -1). Utilisez saveInDB() d'abord.");
@@ -302,7 +303,7 @@ public class Joueur extends ClasseMiroir {
                 throw new Exception("Erreur : L'ID " + this.getId() + " n'a pas été trouvé en base de données. Aucune mise à jour effectuée.");
             }
         }
-    }
+    }*/ //cette methode n'a plus lieu car la table joueur n'a plus de score, c'est gerer par la table points
     public static List<Joueur> getClassementGeneral() throws Exception {
         List<Joueur> classement = new ArrayList<>();
         String query = "SELECT * FROM Joueur ORDER BY scoretotal DESC"; // OBSOLETE, le score n'est plus dans la table joueur
@@ -399,6 +400,45 @@ public class Joueur extends ClasseMiroir {
         }
         return list;
     }
+
+    public static List<Joueur> getClassementTournoi(int tournoiId) throws SQLException {
+    List<Joueur> classement = new ArrayList<>();
+    //on prend les infos du joueur ET ses points dans la table de liaison
+    String query = "SELECT j.*, p.points " +
+                   "FROM Joueur j " +
+                   "JOIN Points p ON j.id = p.idjoueur " +
+                   "WHERE p.idtournoi = ? " +
+                   "ORDER BY p.points DESC, j.surnom ASC"; // Tri par points, puis par surnom si égalité
+
+    try (Connection con = ConnectionPool.getConnection();
+         PreparedStatement pst = con.prepareStatement(query)) {
+        
+        pst.setInt(1, tournoiId);
+        
+        try (ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                // 1. Reconstituer le Joueur de base
+                Joueur j = new Joueur(
+                    rs.getInt("id"),
+                    rs.getString("surnom"),
+                    StatutSexe.valueOf(rs.getString("sexe")),
+                    rs.getInt("taille"),
+                    rs.getString("prenom"),
+                    rs.getString("nom"),
+                    rs.getInt("mois"), rs.getInt("jour"), rs.getInt("annee")
+                );
+                
+                // 2. Lui ajouter ses points pour ce tournoi (récupérés de la table Points)
+                j.setPointsDansTournoi(rs.getInt("points"));
+                
+                classement.add(j);
+            }
+        }
+    }
+    return classement;
+}
+    public int getPointsDansTournoi() { return pointsDansTournoi; }
+    public void setPointsDansTournoi(int points) { this.pointsDansTournoi = points; }
 
 
 

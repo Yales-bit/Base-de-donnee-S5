@@ -100,12 +100,12 @@ public class GestionSchema {
                         + " idronde integer not null,"
                         + " idequipe1 integer not null,"
                         + " idequipe2 integer not null,"
-                        + " idterrain integer not null,"
+                        //+ " idterrain integer not null," on va sans doute se passer des terrains dans matchs
                         + " statut varchar(30) not null, "
                         + " FOREIGN KEY (idronde) REFERENCES Ronde(id),"
                         + " FOREIGN KEY (idequipe1) REFERENCES Equipe(id),"
                         + " FOREIGN KEY (idequipe2) REFERENCES Equipe(id),"
-                        + " FOREIGN KEY (idterrain) REFERENCES Terrain(id)"
+                        //+ " FOREIGN KEY (idterrain) REFERENCES Terrain(id)"
                         + ") "
                 );
 

@@ -257,22 +257,39 @@ protected Statement saveSansId(Connection con) throws SQLException {
 }
 
 
-// Inscrire une liste de joueurs à ce tournoi
-    public void inscrireJoueurs(List<Joueur> joueurs) throws SQLException {
-        try (Connection con = ConnectionPool.getConnection()) {
-            String sql = "INSERT INTO Inscription (id_tournoi, id_joueur) VALUES (?, ?)";
-            try (PreparedStatement pst = con.prepareStatement(sql)) {
-                for (Joueur j : joueurs) {
-                    pst.setInt(1, this.getId()); // ID du tournoi actuel
-                    pst.setInt(2, j.getId());    // ID du joueur
-                    pst.addBatch(); // On prépare l'ajout en lot
-                }
-                pst.executeBatch(); // On exécute tout d'un coup
-            }
-        }
+
+public void inscrireJoueurs(List<Joueur> joueurs) throws Exception {
+    //vérifie si le tournoi est ouvert
+    if (!this.isOuvert()) {
+        // On bloque tout de suite avec une erreur claire
+        throw new Exception("Action impossible : Les inscriptions pour le tournoi '" + this.getNom() + "' sont fermées.");
     }
 
-    // Récupérer les joueurs inscrits à ce tournoi
+    // le tournoi existe-t-il en base ?
+    if (this.getId() == -1) {
+        throw new Exception("Erreur technique : Impossible d'inscrire des joueurs à un tournoi non sauvegardé.");
+    }
+    
+    if (joueurs == null || joueurs.isEmpty()) {
+         return; // Rien à faire si la liste est vide
+    }
+
+    // 3. Si c'est ouvert, on procède à l'inscription normalement
+    try (Connection con = ConnectionPool.getConnection()) {
+        String sql = "INSERT INTO Inscription (idtournoi, idjoueur) VALUES (?, ?)";
+
+        
+        try (PreparedStatement pst = con.prepareStatement(sql)) {
+            for (Joueur j : joueurs) {
+                pst.setInt(1, this.getId()); 
+                pst.setInt(2, j.getId()); 
+                pst.addBatch(); 
+            }
+            pst.executeBatch(); 
+        }
+    }
+}
+    
     public List<Joueur> getJoueursInscrits() throws SQLException {
         List<Joueur> list = new ArrayList<>();
         String sql = "SELECT j.* FROM Joueur j JOIN Inscription i ON j.id = i.id_joueur WHERE i.id_tournoi = ?";
@@ -422,7 +439,7 @@ public void lancerTournoi() throws Exception {
     }//fermeture
     this.setOuvert(false);
     try (Connection con = ConnectionPool.getConnection()) {
-        this.updateStatutTournoi(con, "En cours"); // A DEFINIR
+        this.updateStatutTournoi(con);
     }
     //creation de toutes les rondes (vides)
     int totalRondes = this.getNbrRondes();
@@ -456,8 +473,16 @@ public void passerRondeSuivante() throws Exception {
     Ronde prochaineRonde = Ronde.getRondeParNumero(this.getId(), numeroProchaineRonde);
 
     if (prochaineRonde == null){
-        // le tournoie est terminé, à gérer
-        throw new Exception("Le tournoi est terminé !");
+        System.out.println("Plus de rondes suivantes. Le tournoi est terminé !");
+        
+        this.setFini(true);
+        this.setOuvert(false); // Sécurité supplémentaire
+        
+        try (Connection con = ConnectionPool.getConnection()) {
+            // On sauvegarde le nouvel état "fini" en base
+            this.updateStatutTournoi(con);
+        }
+        return;
     }
 
     System.out.println("Passage de la ronde " + derniereRonde.getNumero() + " à la ronde " + prochaineRonde.getNumero() + ".");
@@ -466,6 +491,20 @@ public void passerRondeSuivante() throws Exception {
     this.genererMatchsPourRonde(prochaineRonde);
 }
 
+public void updateStatutTournoi(Connection con) throws SQLException {
+    if (this.getId() == -1) {
+         throw new SQLException("Impossible de mettre à jour le statut : le tournoi n'existe pas en base (ID = -1).");
+    }
+
+    String sql = "UPDATE Tournoi SET ouvert = ?, fini = ? WHERE id = ?";
+    
+    try (PreparedStatement pst = con.prepareStatement(sql)) {
+        pst.setBoolean(1, this.ouvert);
+        pst.setBoolean(2, this.fini);
+        pst.setInt(3, this.getId());
+        pst.executeUpdate();
+    }
+}
 
     public int getNbrJoueursParEquipe() {
         return nbrjoueursparequipe;
