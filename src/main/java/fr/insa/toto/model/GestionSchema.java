@@ -139,6 +139,14 @@ public class GestionSchema {
                         + " PRIMARY KEY (idjoueur, idtournoi)"
                         + ") "
                 );
+                st.executeUpdate("create table ParticipationRonde ( " //Pour gérer les joueurs prioritaires
+                        + " idjoueur integer not null,"
+                        + " idronde integer not null,"
+                        + " FOREIGN KEY (idjoueur) REFERENCES Joueur(id),"
+                        + " FOREIGN KEY (idronde) REFERENCES Ronde(id),"
+                        + " PRIMARY KEY (idjoueur, idronde)"
+                        + ") "
+                );
                 
 
                 con.commit();
@@ -158,6 +166,7 @@ public class GestionSchema {
             try { st.executeUpdate("drop table Matchs"); } catch (SQLException ex) { System.out.println("Info: Table Matchs non supprimée"); } // Nom au pluriel 
             try { st.executeUpdate("drop table Points"); } catch (SQLException ex) { System.out.println("Info: Table Points non supprimée"); }
             try { st.executeUpdate("drop table Inscription"); } catch (SQLException ex) { System.out.println("Info: Table Inscription non supprimée"); }
+            try { st.executeUpdate("drop table ParticipationRonde"); } catch (SQLException ex) { System.out.println("Info: Table ParticipationRonde non supprimée"); }
             // Suppression des mères ensuite
             try { st.executeUpdate("drop table Equipe"); } catch (SQLException ex) { System.out.println("Info: Table Equipe non supprimée"); }
             try { st.executeUpdate("drop table Ronde"); } catch (SQLException ex) { System.out.println("Info: Table Ronde non supprimée"); }

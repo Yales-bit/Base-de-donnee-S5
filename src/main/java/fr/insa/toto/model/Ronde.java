@@ -133,6 +133,54 @@ public boolean estTerminee() throws SQLException {
     }
     return false; // Par sécurité 
 }
+    public void enregistrerParticipants(Connection con, List<Joueur> participants) throws SQLException { //pour savoir qui a joué cette ronde
+        String sql = "INSERT INTO ParticipationRonde (idronde, idjoueur) VALUES (?, ?)";
+        try (PreparedStatement pst = con.prepareStatement(sql)) {
+            for (Joueur j : participants) {
+                pst.setInt(1, this.getId());
+                pst.setInt(2, j.getId());
+                pst.addBatch();
+            }
+            pst.executeBatch();
+        }
+    }
+
+    public static List<Joueur> getJoueursPrioritaires(int idTournoi, int numeroRondeActuelle) throws SQLException {
+    List<Joueur> prioritaires = new ArrayList<>();
+    
+    // Si c'est la ronde 1, il n'y a pas de ronde précédente, donc pas de prioritaires.
+    if (numeroRondeActuelle <= 1) {
+        return prioritaires;
+    }
+    
+    int numeroRondePrecedente = numeroRondeActuelle - 1;
+    String sql ="SELECT j.* FROM Joueur j " +
+                "JOIN INSCRIPTION i ON i.idjoueur = j.id " +
+                "LEFT JOIN ("+
+                "SELECT pr.idjoueur FROM ParticipationRonde pr " +
+                "JOIN Ronde r ON r.id = pr.idronde"+
+                "WHERE r.idtournoi = ? AND r.numero = ?"+
+                ") AS participants_prec ON j.id = participants_prec.idjoueur " +
+                 "WHERE i.idtournoi = ? AND participants_prec.idjoueur IS NULL"; // selectionne les participants de la ronde precedente
+    try (Connection con = ConnectionPool.getConnection();
+        PreparedStatement pst = con.prepareStatement(sql)){
+            pst.setInt(1, idTournoi);
+            pst.setInt(2, numeroRondeActuelle);
+            pst.setInt(3, idTournoi);
+            
+            try (ResultSet rs = pst.executeQuery()) {
+                    while (rs.next()) {
+                        // Reconstitution du joueur
+                        prioritaires.add(new Joueur(
+                            rs.getInt("id"), rs.getString("surnom"), StatutSexe.valueOf(rs.getString("sexe")),
+                            rs.getInt("taille"), rs.getString("prenom"), rs.getString("nom"),
+                            rs.getInt("mois"), rs.getInt("jour"), rs.getInt("annee")
+                        ));
+                    }
+        }
+    }
+    return prioritaires;
+}
 
     // Getters et Setters
 
