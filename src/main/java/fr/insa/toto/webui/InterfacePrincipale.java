@@ -65,7 +65,9 @@ public class InterfacePrincipale extends AppLayout {
         this.addToNavbar(toggle,new H2("Menu"));
         
         if (Sessioninfo.userConnected()){     // Si il y a un utilisater connecté possibilité de se déconnecter
-            this.addToNavbar(new Logout());
+            Div spacer = new Div();
+            spacer.getStyle().set("flex-grow", "1");
+            this.addToNavbar(spacer, new Logout());
             
         }else {
             //this.addToNavbar(new Login());
