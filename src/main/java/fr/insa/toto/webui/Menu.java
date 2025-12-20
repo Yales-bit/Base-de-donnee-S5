@@ -28,11 +28,15 @@ import fr.insa.toto.webui.Utilisateur.CreationAdmin;
  */
 public class Menu extends SideNav {
     public Menu(){
-        SideNavItem acceuil = new SideNavItem("Acceuil", InterfacePrincipale.class);
+        SideNavItem acceuil = new SideNavItem("Accueil", InterfacePrincipale.class);
         SideNavItem utilisateur = new SideNavItem("Utilisateur");
         SideNavItem creationadmin = new SideNavItem("Création Administrateur",CreationAdmin.class);
         utilisateur.addItem(creationadmin);
         this.addItem(acceuil,utilisateur);
+        
+       // SideNavItem tournoi = new SideNavItem("Tournoi",VueDetailsTournoi.class);
+        //this.addItem(tournoi);
+        
     }
     
 }

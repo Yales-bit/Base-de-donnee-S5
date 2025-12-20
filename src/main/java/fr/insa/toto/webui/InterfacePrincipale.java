@@ -32,7 +32,9 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.router.RouterLink;
 import fr.insa.toto.webui.Session.Login;
 import fr.insa.toto.webui.Session.Logout;
@@ -46,11 +48,11 @@ public class InterfacePrincipale extends AppLayout {
         // --- MENU DE GAUCHE ---
         
         this.addToDrawer(new Menu());
-        this.addToDrawer(new Button("Tournoi"));
         this.addToDrawer(new Button("Classement"));
         this.addToDrawer(new Button("Participants"));
         this.addToDrawer(new Button("Ronde"));
         this.addToDrawer(new Button("Règle"));
+        
         
         VerticalLayout menu = new VerticalLayout();
         
@@ -66,7 +68,27 @@ public class InterfacePrincipale extends AppLayout {
             this.addToNavbar(new Logout());
             
         }else {
-            this.addToNavbar(new Login());
+            //this.addToNavbar(new Login());
+            Div spacer = new Div();
+            spacer.getStyle().set("flex-grow", "1");
+
+        // 🔹 Bouton Compte avec icône
+             Button compteBtn = new Button("Compte", VaadinIcon.USER.create());
+
+        // 🔹 Composant Login
+            Login login = new Login();
+            
+            login.setVisible(false);
+
+        // 🔹 Toggle affichage login
+            compteBtn.addClickListener(e ->{
+            compteBtn.setVisible(false);
+            login.setVisible(!login.isVisible());
+          
+                    });
+
+        this.addToNavbar(spacer, compteBtn, login);
+
         }
         
          

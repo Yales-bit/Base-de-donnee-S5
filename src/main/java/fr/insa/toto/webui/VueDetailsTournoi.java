@@ -24,8 +24,9 @@ import java.sql.SQLException;
 
 import com.vaadin.flow.component.notification.Notification;
 
-@Route("tournoi") // L'URL sera .../tournoi/ID
+@Route(value = "tournoi", layout = InterfacePrincipale.class) // L'URL sera .../tournoi/ID
 @PageTitle("Détails du Tournoi")
+
 public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter<Integer> {
 
     private H2 titreTournoi = new H2();
@@ -45,7 +46,7 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
         setAlignItems(Alignment.CENTER);
 
         // Configuration du bouton retour
-        btnRetour.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate(VueListeTournois.class)));
+       // btnRetour.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate(VueListeTournois.class)));
         
         // Mise en page des infos
         VerticalLayout infosLayout = new VerticalLayout(infoRondes, infoTerrains, infoEquipes, infoDuree);

@@ -44,10 +44,11 @@ public class Login extends HorizontalLayout {
     this.login = new Button("Se Connecter");
     this.mdp = new PasswordField("Mot de Passe");
     this.login.addClickListener((t)->{
-    this.doLogin();        // A REMETRRE QUAND CE SERA FONCTIONNEL
+    this.doLogin();        
        
     });
     this.add(this.identifiant,this.mdp,this.login);
+  
 }
     public void doLogin(){
         String identifiant = this.identifiant.getValue();
@@ -66,7 +67,7 @@ public class Login extends HorizontalLayout {
             ex.printStackTrace();
             
         }
-        // SUITE PROCHAINEMENT
+       
     }
     
 }
