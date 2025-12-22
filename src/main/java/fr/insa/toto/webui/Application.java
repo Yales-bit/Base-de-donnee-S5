@@ -20,6 +20,7 @@ public class Application extends SpringBootServletInitializer implements AppShel
 //            throw new Error(ex);
 //        }
         SpringApplication.run(Application.class, args);
+        
     }
 
 }
