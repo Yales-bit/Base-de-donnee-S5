@@ -25,6 +25,12 @@ public class Equipe extends ClasseMiroir {
         this.score = score;
         this.idronde = idronde;
     }
+        public Equipe(String nom, int idronde) {
+        super(); // associe -1 comme id
+        this.nom = nom;
+        this.score = 0;
+        this.idronde = idronde;
+    }
 
     // Constructeur utilisé quand on connait l'id de l'équipe
     public Equipe(int idequipe, String nom, int score, int idronde) {

@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
+import fr.insa.beuvron.utils.database.ConnectionPool;
 import fr.insa.beuvron.utils.database.ClasseMiroir;
 
 public class Ronde extends ClasseMiroir {
@@ -104,7 +104,7 @@ public class Ronde extends ClasseMiroir {
       try (Connection con = ConnectionPool.getConnection()) {
         PreparedStatement pst = con.prepareStatement("UPDATE Ronde SET statut = ? WHERE id = ?");
         pst.setString(1, nouveauStatut.toString());
-        pst.setInt(2, this.id);
+        pst.setInt(2, this.getId());
         pst.executeUpdate();
       }  
     }

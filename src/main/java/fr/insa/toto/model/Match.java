@@ -30,6 +30,14 @@ public class Match extends ClasseMiroir {
         this.equipe2 = equipe2;
         this.statut = StatutMatch.EN_ATTENTE; // Par défaut, un nouveau match est "en cours"
     }
+    public Match(int id, Ronde ronde, Equipe equipe1, Equipe equipe2, StatutMatch statut) {
+        super(id);
+        this.ronde = ronde;
+        this.equipe1 = equipe1;
+        this.equipe2 = equipe2;
+        this.statut = statut;
+    }
+
     @Override
 protected Statement saveSansId(Connection con) throws SQLException {
     PreparedStatement pst = con.prepareStatement("INSERT INTO Matchs (idronde, idequipe1, idequipe2, statut) VALUES (?, ?, ?, ?, ?)");
@@ -62,7 +70,7 @@ public static Match getMatchById(int matchId, Connection con) throws SQLExceptio
                 int idEq2 = rs.getInt("idequipe2");
 
                 // charger les objets complets via leurs méthodes dédiées
-                Ronde ronde = Ronde.getRondeById(idRonde);
+                Ronde ronde = Ronde.getRonde(idRonde);
                 Equipe eq1 = Equipe.getEquipeById(idEq1);
                 Equipe eq2 = Equipe.getEquipeById(idEq2);
 
