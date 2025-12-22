@@ -27,7 +27,7 @@ import fr.insa.toto.model.StatutSexe;
 import fr.insa.toto.model.Joueur;
 import fr.insa.toto.model.Enum_Mois;
 
-@Route(value = "inscription")
+@Route(value = "inscription", layout = InterfacePrincipale.class)
 @PageTitle("Inscription")
 
 

@@ -29,7 +29,7 @@ import fr.insa.beuvron.utils.database.ConnectionPool;
 import fr.insa.toto.model.StatutSexe;
 import fr.insa.toto.model.Joueur;
 
- @Route("ranking")
+ @Route(value = "ranking", layout = InterfacePrincipale.class)
  @PageTitle("Ranking !")
 
 // CLASSE A MODIFIER EN PROFONDEUR POUR L'ADAPTER A LA GESTION MULTI TOURNOIS

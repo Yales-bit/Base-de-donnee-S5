@@ -10,11 +10,12 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import fr.insa.toto.model.Tournoi;
+import fr.insa.toto.webui.Session.Sessioninfo;
 
 import java.sql.SQLException;
 import java.util.List;
 
-@Route("tournois")
+@Route(value = "tournois", layout = InterfacePrincipale.class)
 @PageTitle("Liste des Tournois")
 public class VueListeTournois extends VerticalLayout {
 
@@ -34,10 +35,14 @@ public class VueListeTournois extends VerticalLayout {
             getUI().ifPresent(ui -> ui.navigate(VueCreation.class));
         });
         
-        HorizontalLayout toolbar = new HorizontalLayout(btnNouveau);
-        toolbar.setWidthFull();
-        toolbar.setJustifyContentMode(JustifyContentMode.END);
-
+        if(Sessioninfo.adminConnected()){
+            HorizontalLayout toolbar = new HorizontalLayout(btnNouveau);
+            toolbar.setWidthFull();
+            toolbar.setJustifyContentMode(JustifyContentMode.END);
+            add(toolbar);
+   
+        }
+      
         // 3. Configuration de la Grille
         // IMPORTANT : On supprime toutes les colonnes par défaut pour les définir manuellement
         grid.removeAllColumns(); 
@@ -66,8 +71,9 @@ public class VueListeTournois extends VerticalLayout {
 
         // 4. Chargement des données
         updateList();
+        add(grid);
 
-        add(toolbar, grid);
+       
     }
 
     private void updateList() {

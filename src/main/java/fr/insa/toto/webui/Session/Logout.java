@@ -34,7 +34,7 @@ public class Logout extends HorizontalLayout{
         this.logout.addClickListener((t)->{
             this.doLogout();
         }); 
-        this.add("Bonjour"+Sessioninfo.curUser().get().getIdentifiant());
+        this.add("Bonjour "+Sessioninfo.curUser().get().getIdentifiant());
         this.add(this.logout);
     }
 

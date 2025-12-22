@@ -48,14 +48,14 @@ public class CreationAdmin extends FormLayout {
 
     private TextField identifiant;
     private PasswordField mdp;
-    private ComboBox<String> role;
+    //private ComboBox<String> role;
     private Button save;
 
     public CreationAdmin() {
         this.identifiant = new TextField("Identifiants");
         this.mdp = new PasswordField("Mot de passe");
-        this.role = new ComboBox<String>("role");
-        this.role.setItems(List.of("utilisateur", "administrateur"));
+        //this.role = new ComboBox<String>("role");
+      //  this.role.setItems(List.of("utilisateur", "administrateur"));
         this.save = new Button("sauvegarder");
         this.save.addClickListener((t) -> {
             this.doSave();
@@ -75,7 +75,7 @@ public class CreationAdmin extends FormLayout {
         FormLayout formLayout = new FormLayout();
         this.addFormRow(this.identifiant);
         this.addFormRow(this.mdp, confirmMdp);
-        this.addFormRow(this.role);
+       // this.addFormRow(this.role);
         this.addFormRow(this.save);
 
     }
@@ -84,10 +84,14 @@ public class CreationAdmin extends FormLayout {
         try (Connection con = ConnectionPool.getConnection()) {
             String identifiant = this.identifiant.getValue();
             String mdp = this.mdp.getValue();
-            int role = 2;
-            if (this.role.getValue() != null && this.role.getValue().equals("adminstrateur")) {
+            int role = 1;
+  /*          if (this.role.getValue() != null && this.role.getValue().equals("adminstrateur")) {
                 role = 1;
-            }
+        
+        }*/
+  
+  // On conserve la possibilité de créer un utilisateur normal au cas où on ait le temps de faire des améliorations bonus
+  
             Utilisateur u = new Utilisateur(identifiant, mdp, role);
             u.saveInDB(con);
             Notification.show("utilisateur " + identifiant + " créé");
