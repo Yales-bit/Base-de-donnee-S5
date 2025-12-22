@@ -104,8 +104,8 @@ public class CreationAdmin extends FormLayout {
             String idSaisi = this.identifiant.getValue();
             String mdpSaisi = this.mdp.getValue();
             
-            // Rôle par défaut = 2 (utilisateur)
-            int roleId = 2; 
+            // Rôle par défaut = 1 (admin)
+            int roleId = 1; 
             // CORRECTION CRITIQUE ICI : "administrateur" (avec un 'i')
            /* if (this.role.getValue() != null && this.role.getValue().equals("administrateur")) {
                 roleId = 1;
