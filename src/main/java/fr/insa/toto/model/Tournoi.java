@@ -292,7 +292,7 @@ public void inscrireJoueurs(List<Joueur> joueurs) throws Exception {
     
     public List<Joueur> getJoueursInscrits() throws SQLException {
         List<Joueur> list = new ArrayList<>();
-        String sql = "SELECT j.* FROM Joueur j JOIN Inscription i ON j.id = i.id_joueur WHERE i.id_tournoi = ?";
+        String sql = "SELECT j.* FROM Joueur j JOIN Inscription i ON j.id = i.idjoueur WHERE i.idtournoi = ?";
         
         try (Connection con = ConnectionPool.getConnection()) {
             PreparedStatement pst = con.prepareStatement(sql);

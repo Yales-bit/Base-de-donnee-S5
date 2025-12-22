@@ -15,6 +15,8 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import fr.insa.toto.model.Joueur;
 import fr.insa.toto.model.Tournoi;
+import fr.insa.toto.model.ServiceInscription;
+import com.vaadin.flow.component.tabs.TabSheet;
 
 import java.util.Set;
 
@@ -70,7 +72,7 @@ public class VueCreation extends VerticalLayout {
                 Set<Joueur> selection = gridSelectionJoueurs.getSelectedItems();
                 if (!selection.isEmpty()) {
                     // On convertit le Set en List et on inscrit
-                    t.inscrireJoueurs(selection.stream().toList());
+                    ServiceInscription.tenterInscription(t, selection.stream().toList());
                 }
 
                 Notification.show("Tournoi créé avec " + selection.size() + " joueurs inscrits !", 3000, Notification.Position.TOP_CENTER)
