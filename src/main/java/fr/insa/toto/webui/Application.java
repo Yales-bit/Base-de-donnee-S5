@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 @SpringBootApplication
-@Theme("theme_prem")
+@Theme("myTheme")
 public class Application extends SpringBootServletInitializer implements AppShellConfigurator {
 
 
@@ -20,6 +20,7 @@ public class Application extends SpringBootServletInitializer implements AppShel
 //            throw new Error(ex);
 //        }
         SpringApplication.run(Application.class, args);
+        
     }
 
 }

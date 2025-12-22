@@ -1,46 +1,38 @@
-/*
-Copyright 2000- Francois de Bertrand de Beuvron
-
-This file is part of CoursBeuvron.
-
-CoursBeuvron is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-CoursBeuvron is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with CoursBeuvron.  If not, see <http://www.gnu.org/licenses/>.
- */
 package fr.insa.toto.webui;
 
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
+import fr.insa.toto.webui.Session.Sessioninfo;
 import fr.insa.toto.webui.Utilisateur.CreationAdmin;
 
-/**
- *
- * @author vicbl
- */
 public class Menu extends SideNav {
     public Menu(){
         SideNavItem accueil = new SideNavItem("Accueil", VueListeTournois.class);
         accueil.setPrefixComponent(new Icon(VaadinIcon.HOME));
-        SideNavItem utilisateur = new SideNavItem("Utilisateur");
-        SideNavItem creationadmin = new SideNavItem("Création Administrateur",CreationAdmin.class);
-        utilisateur.addItem(creationadmin);
+       // SideNavItem utilisateur = new SideNavItem("Utilisateur");
+       // SideNavItem creationadmin = new SideNavItem("Création Administrateur",CreationAdmin.class);
+      //  utilisateur.addItem(creationadmin);
        // SideNavItem tournoi = new SideNavItem("Tournoi",VueListeTournois.class);
-        this.addItem(accueil,utilisateur);
+        this.addItem(accueil);
         
        
        
         
+        setLabel("Navigation");
+        // Pages principales
+        SideNavItem tournois = new SideNavItem("Tournois", VueListeTournois.class);
+        SideNavItem joueurs = new SideNavItem("Joueurs");
+        joueurs.addItem(new SideNavItem("Rechercher", VueRechercheJoueur.class));
+        joueurs.addItem(new SideNavItem("Nouveau Joueur", VueInscription.class));
+
+        // Administration
+        if(Sessioninfo.adminConnected()){
+        SideNavItem admin = new SideNavItem("Administration");
+        admin.addItem(new SideNavItem("Créer Utilisateur", CreationAdmin.class));
+        this.addItem(admin);
+        }
+        this.addItem(tournois, joueurs);
     }
-    
 }
