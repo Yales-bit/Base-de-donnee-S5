@@ -20,7 +20,7 @@ public class Ronde extends ClasseMiroir {
         super();
         this.numero = numero;
         this.idtournoi = idtournoi;
-        this.statut = StatutRonde.EN_ATTENTE;
+        this.statut = statut;
     }
 
     public Ronde(int id, int numero, StatutRonde statut, int idtournoi) {
@@ -110,7 +110,7 @@ protected Statement saveSansId(Connection con) throws SQLException {
       this.statut = nouveauStatut;
       try (Connection con = ConnectionPool.getConnection()) {
         PreparedStatement pst = con.prepareStatement("UPDATE Ronde SET statut = ? WHERE id = ?");
-        pst.setString(1, nouveauStatut.toString());
+        pst.setString(1, nouveauStatut.name());
         pst.setInt(2, this.getId());
         pst.executeUpdate();
       }  
@@ -128,7 +128,7 @@ public boolean estTerminee() throws SQLException {
         
         pst.setInt(1, this.getId());
         // Attention à bien utiliser la valeur String de l'enum
-        pst.setString(2, StatutMatch.TERMINE.toString());
+        pst.setString(2, StatutMatch.TERMINE.name());
         
         try (ResultSet rs = pst.executeQuery()) {
             if (rs.next()) {

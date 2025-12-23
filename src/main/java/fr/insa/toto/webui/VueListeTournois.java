@@ -54,7 +54,7 @@ public class VueListeTournois extends VerticalLayout {
         grid.addColumn(Tournoi::getNbrTerrains).setHeader("Terrains");
         
         // Colonne calculée pour le statut
-        grid.addColumn(t -> t.isFini() ? "Terminé" : (t.isOuvert() ? "En cours" : "Préparation"))
+        grid.addColumn(t -> t.isFini() ? "Terminé" : (!t.isOuvert() ? "En cours" : "Préparation"))
             .setHeader("Statut");
 
         // --- COLONNE BOUTON (Celle qui te manquait) ---

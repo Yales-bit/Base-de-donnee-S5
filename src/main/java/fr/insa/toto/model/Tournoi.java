@@ -624,7 +624,11 @@ public void updateStatutTournoi(Connection con) throws SQLException {
 
     public void setOuvert(boolean ouvert) {
         this.ouvert = ouvert;
-    }
+        // Règle métier : Si c'est ouvert, ce n'est pas fini.
+        if (ouvert) {
+            this.fini = false;
+        }
+}
 
     public boolean isFini() {
         return fini;
@@ -632,6 +636,10 @@ public void updateStatutTournoi(Connection con) throws SQLException {
 
     public void setFini(boolean fini) {
         this.fini = fini;
+        // Règle métier : Si c'est fini, ce n'est plus ouvert.
+        if (fini) {
+            this.ouvert = false;
+        }
     }
 
 @Override

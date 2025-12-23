@@ -145,7 +145,7 @@ public static void validerResultatMatch(int matchId, int scoreEquipe1, int score
         // terminer le match
         String updateMatchSql = "UPDATE Matchs SET statut = ? WHERE id = ?";
         try(PreparedStatement pstMatch = con.prepareStatement(updateMatchSql)) {
-            pstMatch.setString(1, StatutMatch.TERMINE.toString());
+            pstMatch.setString(1, StatutMatch.TERMINE.name());
             pstMatch.setInt(2, matchId);
             pstMatch.executeUpdate();
         }

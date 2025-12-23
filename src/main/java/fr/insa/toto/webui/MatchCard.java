@@ -69,11 +69,16 @@ public class MatchCard extends VerticalLayout {
              int s2 = (match.getEquipe2() != null) ? match.getEquipe2().getScore() : 0;
              texteScore = s1 + " - " + s2;
              couleur = "var(--lumo-primary-text-color)"; // Couleur normale
-        } else {
-             // Si le match n'est pas fini (et qu'on est visiteur), on affiche "À jouer"
-             texteScore = "À jouer";
-             couleur = "var(--lumo-tertiary-text-color)"; // Gris clair
         }
+        else {
+            // Si le match n'est pas fini
+            if (match.getStatut() == StatutMatch.EN_COURS) {
+                texteScore = "En cours";
+        } else {
+        texteScore = "À jouer";
+    }
+    couleur = "var(--lumo-tertiary-text-color)";
+}
 
         Span scoreSpan = new Span(texteScore);
         scoreSpan.getElement().getStyle().set("font-size", "1.5em");
