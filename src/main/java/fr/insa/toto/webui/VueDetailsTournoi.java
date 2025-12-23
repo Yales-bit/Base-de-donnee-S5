@@ -22,7 +22,10 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import fr.insa.toto.model.ServiceInscription;
 import com.vaadin.flow.component.combobox.*;
 import com.vaadin.flow.component.dialog.Dialog;
-
+import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.accordion.AccordionPanel;
+import fr.insa.toto.model.Ronde;
+import fr.insa.toto.model.Match;
 import fr.insa.toto.model.Joueur;
 import java.util.List;
 import fr.insa.toto.model.Joueur;
@@ -48,7 +51,8 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
     private Span infoTerrains = new Span();
     private Span infoEquipes = new Span();
     private Span infoDuree = new Span();
-
+    private H4 titreParticipants = new H4("Participants inscrits");
+    private Accordion accordionRondes = new Accordion();
     private Button btnRetour = new Button("Retour liste", VaadinIcon.ARROW_LEFT.create());
 
     private Grid<Joueur> gridParticipants = new Grid<>(Joueur.class);
@@ -78,6 +82,8 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
         gridParticipants.setColumns("surnom", "sexe", "taille");
         gridParticipants.setWidthFull();
         gridParticipants.setMaxWidth("800px");
+        gridParticipants.getElement().getStyle().set("margin-left", "auto");
+        gridParticipants.getElement().getStyle().set("margin-right", "auto");
         
         HorizontalLayout headerLayout = new HorizontalLayout(btnRetour, titreTournoi, statusBadge);
         headerLayout.setAlignItems(Alignment.CENTER); // Centre verticalement
@@ -102,14 +108,15 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
         contenuOngletInfos.add(actionsLayout);
         contenuOngletInfos.add(new H4("Paramètres du tournoi"));
         contenuOngletInfos.add(infosLayout);
-        contenuOngletInfos.add(new H4("Participants inscrits"));
+        contenuOngletInfos.add(this.titreParticipants);
         contenuOngletInfos.add(gridParticipants);
 
 
         // 3. Création du contenu du deuxième onglet ("Matchs & Résultats").
         VerticalLayout contenuOngletMatchs = new VerticalLayout();
         contenuOngletMatchs.setPadding(false);
-        contenuOngletMatchs.add(new Span("Ici s'afficheront les rondes et les matchs quand le tournoi sera démarré."));
+        this.accordionRondes.setWidthFull();
+        contenuOngletMatchs.add(this.accordionRondes);
 
 
         // 4. Création et configuration du TabSheet (la boîte à onglets)
@@ -201,8 +208,9 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
         try {
             List<Joueur> inscrits = t.getJoueursInscrits();
             gridParticipants.setItems(inscrits);
-            // Petit bonus : mettre à jour le titre de la section
-            // "Participants inscrits (12)"
+            int count = inscrits.size();
+            String label = (count <= 1) ? "Participant inscrit" : "Participants inscrits";
+            this.titreParticipants.setText(label + " (" + count + ")");
         } catch (SQLException e) {
             Notification.show("Erreur chargement participants : " + e.getMessage());
         }
@@ -215,6 +223,7 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
                 showInscriptionDialog();
             }
         });
+        actualiserAffichageRondes(t);
     }
 
 
@@ -342,9 +351,58 @@ private void actualiserGrilleParticipants() {
     try {
         List<Joueur> inscrits = tournoiActuel.getJoueursInscrits();
         gridParticipants.setItems(inscrits);
-        // Bonus : On mettrait bien à jour le titre "Participants inscrits (X)" ici si on avait gardé une référence au H4
     } catch (SQLException e) {
         Notification.show("Erreur rechargement participants : " + e.getMessage());
+    }
+}
+
+
+private void actualiserAffichageRondes(Tournoi t) {
+    accordionRondes.getElement().removeAllChildren();
+
+    try {
+        List<Ronde> rondes = Ronde.getRondesDuTournoi(t.getId());
+
+        if (rondes.isEmpty()) {
+            // Si pas de rondes (tournoi pas encore démarré), on met un petit message
+            VerticalLayout emptyLayout = new VerticalLayout(new Span("Le tournoi n'a pas encore démarré. Les matchs apparaîtront ici."));
+            accordionRondes.add("En attente", emptyLayout);
+            return;
+        }
+
+        for (Ronde ronde : rondes) {
+            // a. On crée un layout vertical pour empiler les matchs de cette ronde
+            VerticalLayout layoutMatchsDeLaRonde = new VerticalLayout();
+            layoutMatchsDeLaRonde.setPadding(false);
+            layoutMatchsDeLaRonde.setSpacing(true); // Un petit espace entre les matchs
+
+            // b. On crée la liste des matchs de cette ronde
+            List<Match> matchs = Match.getMatchsDeLaRonde(ronde.getId());
+
+            if (matchs.isEmpty()) {
+                 layoutMatchsDeLaRonde.add(new Span("Aucun match généré pour cette ronde."));
+            } else {
+                // c. Pour chaque match, on crée une MatchCard et on l'ajoute
+                for (Match match : matchs) {
+                    MatchCard card = new MatchCard(match);
+                    layoutMatchsDeLaRonde.add(card);
+                }
+            }
+
+            String titrePanel = "Ronde " + ronde.getNumero() + " (" + ronde.getStatut() + ")";//////-/
+
+            AccordionPanel panel = accordionRondes.add(titrePanel, layoutMatchsDeLaRonde);
+
+            // Si c'est la ronde en cours, on l'ouvre par défaut
+            if (ronde.getStatut().toString().equals("EN_COURS")) {
+                  panel.setOpened(true);
+            }
+        }
+
+    } catch (SQLException e) {
+        Notification.show("Erreur lors du chargement des matchs : " + e.getMessage())
+            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        e.printStackTrace();
     }
 }
 }

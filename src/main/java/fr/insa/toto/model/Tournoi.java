@@ -325,7 +325,7 @@ public void inscrireJoueurs(List<Joueur> joueurs) throws Exception {
  */
 public int compterJoueursInscrits() throws SQLException {
    
-    String sql = "SELECT COUNT(id_joueur) FROM Inscription WHERE id_tournoi = ?";
+    String sql = "SELECT COUNT(idjoueur) FROM Inscription WHERE idtournoi = ?";
     
     // Vérification de base pour s'assurer que l'objet est bien en BDD
     if (this.getId() == -1) {

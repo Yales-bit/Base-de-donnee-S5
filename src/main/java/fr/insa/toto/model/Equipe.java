@@ -106,16 +106,20 @@ public static Equipe getEquipeById(int id) throws SQLException {
     }
     return null; // Pas trouvée
 }
+
 @Override
-    protected Statement saveSansId(Connection con) throws SQLException {
-        // Utilisation du nom de table singulier 'Equipe' et des bonnes colonnes
-        PreparedStatement pst = con.prepareStatement("INSERT INTO Equipe (nom, score, idronde) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
-        pst.setString(1, this.nom);
-        pst.setInt(2, this.score);
-        pst.setInt(3, this.idronde);
-        pst.executeUpdate();
-        return pst;
-    }
+protected Statement saveSansId(Connection con) throws SQLException {
+    // CORRECTION : Ajout de Statement.RETURN_GENERATED_KEYS
+    PreparedStatement pst = con.prepareStatement(
+        "INSERT INTO Equipe (nom, score, idronde) VALUES (?, ?, ?)",
+        Statement.RETURN_GENERATED_KEYS // <--- ICI
+    );
+    pst.setString(1, this.nom);
+    pst.setInt(2, this.score);
+    pst.setInt(3, this.idronde);
+    pst.executeUpdate();
+    return pst;
+}
 
     // Getters and Setters
     public String getNom() {

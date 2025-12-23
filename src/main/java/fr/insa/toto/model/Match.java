@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import fr.insa.beuvron.utils.database.ConnectionPool;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Match extends ClasseMiroir {
@@ -38,14 +39,18 @@ public class Match extends ClasseMiroir {
         this.statut = statut;
     }
 
-    @Override
+@Override
 protected Statement saveSansId(Connection con) throws SQLException {
-    PreparedStatement pst = con.prepareStatement("INSERT INTO Matchs (idronde, idequipe1, idequipe2, statut) VALUES (?, ?, ?, ?, ?)");
+    // CORRECTION : Ajout de Statement.RETURN_GENERATED_KEYS
+    PreparedStatement pst = con.prepareStatement(
+        "INSERT INTO Matchs (idronde, idequipe1, idequipe2, statut) VALUES (?, ?, ?, ?)",
+        Statement.RETURN_GENERATED_KEYS // <--- ET ICI
+    );
     pst.setInt(1, this.ronde.getId());
     pst.setInt(2, this.equipe1.getId());
     pst.setInt(3, this.equipe2.getId());
-    //pst.setInt(4, this.terrain.getId());
-    pst.setString(4, this.statut.toString());
+    // Utilise name() pour l'enum
+    pst.setString(4, this.statut.name());
     pst.executeUpdate();
     return pst;
 }
@@ -193,7 +198,27 @@ private static void distribuerPointsAuxJoueurs(Connection con, List<Joueur> joue
         pst.executeBatch();
     }
 }
+public static List<Match> getMatchsDeLaRonde(int idRonde) throws SQLException {
+    List<Match> matchs = new ArrayList<>();
+    String sql = "SELECT id FROM Matchs WHERE idronde = ?";
 
+    try (Connection con = ConnectionPool.getConnection();
+         PreparedStatement pst = con.prepareStatement(sql)) {
+        
+        pst.setInt(1, idRonde);
+        
+        try (ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                int idMatch = rs.getInt("id");
+                Match m = Match.getMatchById(idMatch, con);
+                if (m != null) {
+                    matchs.add(m);
+                }
+            }
+        }
+    }
+    return matchs;
+}
 
 
     // Getters et Setters
@@ -214,7 +239,7 @@ private static void distribuerPointsAuxJoueurs(Connection con, List<Joueur> joue
     public void setTerrain(Terrain terrain) { this.terrain = terrain; }
 
     // Méthodes utilitaires
-    public boolean estTermine() {
+    public boolean isTermine() {
         return this.statut == StatutMatch.TERMINE;
     }
 }

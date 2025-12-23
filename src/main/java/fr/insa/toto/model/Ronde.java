@@ -29,16 +29,23 @@ public class Ronde extends ClasseMiroir {
         this.statut = statut;
         this.idtournoi = idtournoi;
     }
-    @Override
-    protected Statement saveSansId(Connection con) throws SQLException {
-        PreparedStatement pst = con.prepareStatement("INSERT INTO Ronde (numero, statut, idtournoi) VALUES (?, ?, ?)");
-        pst.setInt(1, this.numero);
-        pst.setString(2, this.statut.toString());
-        pst.setInt(3, this.idtournoi);
-        pst.executeUpdate();
-        return pst;
-    }
 
+
+@Override
+protected Statement saveSansId(Connection con) throws SQLException {
+    // CORRECTION ICI : Ajout de PreparedStatement.RETURN_GENERATED_KEYS
+    PreparedStatement pst = con.prepareStatement(
+        "INSERT INTO Ronde (numero, statut, idtournoi) VALUES (?, ?, ?)",
+        Statement.RETURN_GENERATED_KEYS // <--- C'EST ÇA QUI MANQUAIT
+    );
+    
+    pst.setInt(1, this.numero);
+    // Utilisation de name() pour l'enum, c'est plus sûr que toString()
+    pst.setString(2, this.statut.name()); 
+    pst.setInt(3, this.idtournoi);
+    pst.executeUpdate();
+    return pst;
+}
     public static Ronde getRondeParNumero (int idTournoi, int numero) throws SQLException {
         try (Connection con = ConnectionPool.getConnection()) {
             PreparedStatement pst = con.prepareStatement("SELECT + FROM Ronde WHERE idtournoi = ? AND numero = ?");
@@ -180,6 +187,27 @@ public boolean estTerminee() throws SQLException {
         }
     }
     return prioritaires;
+}
+public static List<Ronde> getRondesDuTournoi(int idTournoi) throws SQLException {
+    List<Ronde> rondes = new ArrayList<>();
+    String sql = "SELECT id FROM Ronde WHERE idtournoi = ? ORDER BY numero ASC";
+
+    try (Connection con = ConnectionPool.getConnection();
+         PreparedStatement pst = con.prepareStatement(sql)) {
+        
+        pst.setInt(1, idTournoi);
+        
+        try (ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                int idRonde = rs.getInt("id");
+                Ronde r = Ronde.getRonde(idRonde);
+                if (r != null) {
+                    rondes.add(r);
+                }
+            }
+        }
+    }
+    return rondes;
 }
 
     // Getters et Setters
