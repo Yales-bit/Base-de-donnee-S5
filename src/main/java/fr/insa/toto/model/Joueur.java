@@ -32,7 +32,7 @@ import org.hibernate.annotations.processing.SQL;
 import fr.insa.beuvron.utils.database.ClasseMiroir;
 import fr.insa.beuvron.utils.database.ConnectionPool;
 import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
-
+import fr.insa.toto.model.dto.LigneHistoriqueDTO;
 
 public class Joueur extends ClasseMiroir {
     private String prenom;
@@ -46,7 +46,8 @@ public class Joueur extends ClasseMiroir {
     private int taille;
     private int pointsDansTournoi = 0;
 
-    //Constructeur utilisé quand on ne connait pas encore l'id du joueur (il vient d'être créé) A SUPPRIMER
+    // Constructeur utilisé quand on ne connait pas encore l'id du joueur (il vient
+    // d'être créé) A SUPPRIMER
     public Joueur(String surnom, StatutSexe sexe, int taille) {
         super();
         this.surnom = surnom;
@@ -59,8 +60,10 @@ public class Joueur extends ClasseMiroir {
         this.jour = 0;
         this.annee = 0;
     }
-    //Constructeur avec nom, prenom, date de naissance
-    public Joueur(String surnom, StatutSexe sexe, int taille, String prenom, String nom, int mois, int jour, int annee) {
+
+    // Constructeur avec nom, prenom, date de naissance
+    public Joueur(String surnom, StatutSexe sexe, int taille, String prenom, String nom, int mois, int jour,
+            int annee) {
         super();
         this.surnom = surnom;
         this.sexe = sexe;
@@ -72,22 +75,26 @@ public class Joueur extends ClasseMiroir {
         this.annee = annee;
     }
 
-    //Constructeur utilisé quand on connait l'id du joueur (il vient d'avoir son id attribué) A SUPPRIMER
-    /*public Joueur(int id, String surnom, StatutSexe sexe, int taille) {
-        super(id);
-        this.surnom = surnom;
-        this.sexe = sexe;
-        this.taille = taille;
-        this.scoretotal = 0;
-        this.prenom = null;
-        this.nom = null;
-        this.mois = 0;
-        this.jour = 0;
-        this.annee = 0;
-    }*/
+    // Constructeur utilisé quand on connait l'id du joueur (il vient d'avoir son id
+    // attribué) A SUPPRIMER
+    /*
+     * public Joueur(int id, String surnom, StatutSexe sexe, int taille) {
+     * super(id);
+     * this.surnom = surnom;
+     * this.sexe = sexe;
+     * this.taille = taille;
+     * this.scoretotal = 0;
+     * this.prenom = null;
+     * this.nom = null;
+     * this.mois = 0;
+     * this.jour = 0;
+     * this.annee = 0;
+     * }
+     */
 
-    //Constructeur avec id, nom, prenom, date de naissance
-    public Joueur(int id, String surnom, StatutSexe sexe, int taille, String prenom, String nom, int mois, int jour, int annee) {
+    // Constructeur avec id, nom, prenom, date de naissance
+    public Joueur(int id, String surnom, StatutSexe sexe, int taille, String prenom, String nom, int mois, int jour,
+            int annee) {
         super(id);
         this.surnom = surnom;
         this.sexe = sexe;
@@ -99,16 +106,19 @@ public class Joueur extends ClasseMiroir {
         this.annee = annee;
     }
 
-    //Constructeur avec score total A SUPPRIMER
-    /*public Joueur(int id, String surnom, StatutSexe sexe, int taille, int scoretotal) {
-        super(id);
-        this.surnom = surnom;
-        this.sexe = sexe;
-        this.taille = taille;
-        this.scoretotal = scoretotal;
-    }*/
+    // Constructeur avec score total A SUPPRIMER
+    /*
+     * public Joueur(int id, String surnom, StatutSexe sexe, int taille, int
+     * scoretotal) {
+     * super(id);
+     * this.surnom = surnom;
+     * this.sexe = sexe;
+     * this.taille = taille;
+     * this.scoretotal = scoretotal;
+     * }
+     */
 
-    //Constructeur avec tout sauf annee mois jour
+    // Constructeur avec tout sauf annee mois jour
     public Joueur(int id, String surnom, StatutSexe sexe, int taille, String prenom, String nom) {
         super(id);
         this.surnom = surnom;
@@ -146,15 +156,18 @@ public class Joueur extends ClasseMiroir {
 
         try (Connection con = ConnectionPool.getConnection()) {
             J.saveInDB(con);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             String sqlErrorMessage = e.getMessage();
-            if (sqlErrorMessage != null && (sqlErrorMessage.contains("Duplicate entry") || sqlErrorMessage.contains("Violation d'index unique")) && sqlErrorMessage.toLowerCase().contains("surnom")) {
-                throw new SQLException("Le joueur "+J.getSurnom()+" existe deja"); //Par la suite ajouter une option permettant de modifier le joueur
+            if (sqlErrorMessage != null
+                    && (sqlErrorMessage.contains("Duplicate entry")
+                            || sqlErrorMessage.contains("Violation d'index unique"))
+                    && sqlErrorMessage.toLowerCase().contains("surnom")) {
+                throw new SQLException("Le joueur " + J.getSurnom() + " existe deja"); // Par la suite ajouter une
+                                                                                       // option permettant de modifier
+                                                                                       // le joueur
             }
         }
 
-        
     }
 
     // 2. Méthode pour rechercher des joueurs par une partie de leur surnom
@@ -165,7 +178,7 @@ public class Joueur extends ClasseMiroir {
             PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur WHERE surnom LIKE ?");
             pst.setString(1, "%" + recherche + "%");
             ResultSet rs = pst.executeQuery();
-            
+
             while (rs.next()) {
                 int id = rs.getInt("id");
                 String surnom = rs.getString("surnom");
@@ -178,14 +191,18 @@ public class Joueur extends ClasseMiroir {
                 int annee = rs.getInt("annee");
                 StatutSexe sexe = null;
                 try {
-                    if(catStr != null) sexe = StatutSexe.valueOf(catStr);
-                } catch (IllegalArgumentException e) { sexe = StatutSexe.MASCULIN; }
+                    if (catStr != null)
+                        sexe = StatutSexe.valueOf(catStr);
+                } catch (IllegalArgumentException e) {
+                    sexe = StatutSexe.MASCULIN;
+                }
 
                 resultats.add(new Joueur(id, surnom, sexe, taille, prenom, nom, mois, jour, annee));
             }
         }
         return resultats;
     }
+
     public static List<Joueur> rechercherParPrenom(String recherche) throws SQLException {
         List<Joueur> resultats = new ArrayList<>();
         try (Connection con = ConnectionPool.getConnection()) {
@@ -193,7 +210,7 @@ public class Joueur extends ClasseMiroir {
             PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur WHERE prenom LIKE ?");
             pst.setString(1, "%" + recherche + "%");
             ResultSet rs = pst.executeQuery();
-            
+
             while (rs.next()) {
                 int id = rs.getInt("id");
                 String surnom = rs.getString("surnom");
@@ -207,8 +224,11 @@ public class Joueur extends ClasseMiroir {
 
                 StatutSexe sexe = null;
                 try {
-                    if(catStr != null) sexe = StatutSexe.valueOf(catStr);
-                } catch (IllegalArgumentException e) { sexe = StatutSexe.MASCULIN; }
+                    if (catStr != null)
+                        sexe = StatutSexe.valueOf(catStr);
+                } catch (IllegalArgumentException e) {
+                    sexe = StatutSexe.MASCULIN;
+                }
 
                 resultats.add(new Joueur(id, surnom, sexe, taille, prenom, nom, mois, jour, annee));
             }
@@ -223,7 +243,7 @@ public class Joueur extends ClasseMiroir {
             PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur WHERE nom LIKE ?");
             pst.setString(1, "%" + recherche + "%");
             ResultSet rs = pst.executeQuery();
-            
+
             while (rs.next()) {
                 int id = rs.getInt("id");
                 String surnom = rs.getString("surnom");
@@ -236,16 +256,17 @@ public class Joueur extends ClasseMiroir {
                 int annee = rs.getInt("annee");
                 StatutSexe sexe = null;
                 try {
-                    if(catStr != null) sexe = StatutSexe.valueOf(catStr);
-                } catch (IllegalArgumentException e) { sexe = StatutSexe.MASCULIN; }
+                    if (catStr != null)
+                        sexe = StatutSexe.valueOf(catStr);
+                } catch (IllegalArgumentException e) {
+                    sexe = StatutSexe.MASCULIN;
+                }
 
                 resultats.add(new Joueur(id, surnom, sexe, taille, prenom, nom, mois, jour, annee));
             }
         }
         return resultats;
     }
-
-
 
     // 1. Méthode pour récupérer un joueur unique par son ID
     public static Joueur getJoueurById(int id) throws SQLException {
@@ -259,15 +280,16 @@ public class Joueur extends ClasseMiroir {
                 String catStr = rs.getString("sexe");
                 int taille = rs.getInt("taille");
                 String prenom = rs.getString("prenom");
-                String nom = rs.getString("nom"); 
+                String nom = rs.getString("nom");
                 int mois = rs.getInt("mois");
                 int jour = rs.getInt("jour");
                 int annee = rs.getInt("annee");
-                
+
                 // Gestion sécurisée de l'enum (si null ou invalide)
                 StatutSexe sexe = null;
                 try {
-                    if(catStr != null) sexe = StatutSexe.valueOf(catStr);
+                    if (catStr != null)
+                        sexe = StatutSexe.valueOf(catStr);
                 } catch (IllegalArgumentException e) {
                     sexe = StatutSexe.MASCULIN; // Valeur par défaut si erreur
                 }
@@ -278,38 +300,47 @@ public class Joueur extends ClasseMiroir {
         return null; // Pas trouvé
     }
 
-   /* public void ajouterPoints(int points) { this.scoretotal += points; }
-    public void update(Connection con) throws SQLException, Exception {
-        if (this.getId() == -1) {
-            throw new Exception("Impossible de mettre à jour ce joueur : il n'a pas encore été sauvegardé en base de données (son ID est -1). Utilisez saveInDB() d'abord.");
-        }
-        String query = "UPDATE Joueur SET surnom = ?, taille = ?, sexe = ?, prenom = ?, nom = ?, mois = ?, jour = ?, annee = ? WHERE id = ?";
-        try (PreparedStatement pst = con.prepareStatement(query)) {
-            pst.setString(1, this.surnom);
-            pst.setInt(2, this.taille);
-            pst.setString(3, this.sexe.toString());
-            pst.setString(4, this.prenom);
-            pst.setString(5, this.nom);
-            pst.setInt(6, this.mois);
-            pst.setInt(7, this.jour);
-            pst.setInt(8, this.annee);
-            // Le dernier paramètre est l'ID pour le WHERE
-            pst.setInt(5, this.getId());
-
-            // Exécution
-            int rowsAffected = pst.executeUpdate();
-            // (Optionnel) Vérification de sécurité
-            if (rowsAffected == 0) {
-                throw new Exception("Erreur : L'ID " + this.getId() + " n'a pas été trouvé en base de données. Aucune mise à jour effectuée.");
-            }
-        }
-    }*/ //cette methode n'a plus lieu car la table joueur n'a plus de score, c'est gerer par la table points
+    /*
+     * public void ajouterPoints(int points) { this.scoretotal += points; }
+     * public void update(Connection con) throws SQLException, Exception {
+     * if (this.getId() == -1) {
+     * throw new
+     * Exception("Impossible de mettre à jour ce joueur : il n'a pas encore été sauvegardé en base de données (son ID est -1). Utilisez saveInDB() d'abord."
+     * );
+     * }
+     * String query =
+     * "UPDATE Joueur SET surnom = ?, taille = ?, sexe = ?, prenom = ?, nom = ?, mois = ?, jour = ?, annee = ? WHERE id = ?"
+     * ;
+     * try (PreparedStatement pst = con.prepareStatement(query)) {
+     * pst.setString(1, this.surnom);
+     * pst.setInt(2, this.taille);
+     * pst.setString(3, this.sexe.toString());
+     * pst.setString(4, this.prenom);
+     * pst.setString(5, this.nom);
+     * pst.setInt(6, this.mois);
+     * pst.setInt(7, this.jour);
+     * pst.setInt(8, this.annee);
+     * // Le dernier paramètre est l'ID pour le WHERE
+     * pst.setInt(5, this.getId());
+     * 
+     * // Exécution
+     * int rowsAffected = pst.executeUpdate();
+     * // (Optionnel) Vérification de sécurité
+     * if (rowsAffected == 0) {
+     * throw new Exception("Erreur : L'ID " + this.getId() +
+     * " n'a pas été trouvé en base de données. Aucune mise à jour effectuée.");
+     * }
+     * }
+     * }
+     */ // cette methode n'a plus lieu car la table joueur n'a plus de score, c'est
+        // gerer par la table points
     public static List<Joueur> getClassementGeneral() throws Exception {
         List<Joueur> classement = new ArrayList<>();
-        String query = "SELECT * FROM Joueur ORDER BY scoretotal DESC"; // OBSOLETE, le score n'est plus dans la table joueur
+        String query = "SELECT * FROM Joueur ORDER BY scoretotal DESC"; // OBSOLETE, le score n'est plus dans la table
+                                                                        // joueur
         try (Connection con = ConnectionPool.getConnection();
-            PreparedStatement pst = con.prepareStatement(query);
-            ResultSet rs = pst.executeQuery()) {
+                PreparedStatement pst = con.prepareStatement(query);
+                ResultSet rs = pst.executeQuery()) {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 String surnom = rs.getString("surnom");
@@ -323,24 +354,20 @@ public class Joueur extends ClasseMiroir {
                 Joueur j = new Joueur(id, surnom, sexe, taille, prenom, nom, mois, jour, annee);
                 classement.add(j);
             }
-            }
-            catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             // Erreur spécifique si la valeur du sexe en BDD ne correspond pas à l'Enum
-                throw new Exception("Erreur de données en base : statut de sexe inconnu.");
-            } catch (SQLException e) {
-                throw new Exception("Erreur technique lors de la récupération du classement.", e);
-            }
+            throw new Exception("Erreur de données en base : statut de sexe inconnu.");
+        } catch (SQLException e) {
+            throw new Exception("Erreur technique lors de la récupération du classement.", e);
+        }
         return classement;
     }
 
-    
-
-
-
-            @Override
+    @Override
     protected Statement saveSansId(Connection con) throws SQLException {
-        PreparedStatement pst = con.prepareStatement("insert into Joueur (surnom, sexe, taille, prenom, nom, mois, jour, annee) \n"
-                + "values(?,?,?,?,?,?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
+        PreparedStatement pst = con
+                .prepareStatement("insert into Joueur (surnom, sexe, taille, prenom, nom, mois, jour, annee) \n"
+                        + "values(?,?,?,?,?,?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
         pst.setString(1, this.surnom);
         pst.setString(2, this.sexe.toString());
         pst.setInt(3, this.taille);
@@ -354,26 +381,25 @@ public class Joueur extends ClasseMiroir {
 
     }
 
-    
- //  Récupérer le nombre de joueurs en base
+    // Récupérer le nombre de joueurs en base
     public static int getNombreJoueurs() throws SQLException {
-         try (Connection con = ConnectionPool.getConnection()){
+        try (Connection con = ConnectionPool.getConnection()) {
 
-        PreparedStatement stmt = con.prepareStatement("SELECT COUNT(*) FROM Joueur");
-        ResultSet rs = stmt.executeQuery();
+            PreparedStatement stmt = con.prepareStatement("SELECT COUNT(*) FROM Joueur");
+            ResultSet rs = stmt.executeQuery();
 
-        int count = 0;
-        if (rs.next()) {
-            count = rs.getInt(1);
+            int count = 0;
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+
+            rs.close();
+            stmt.close();
+            con.close();
+
+            return count;
         }
-
-        rs.close();
-        stmt.close();
-        con.close();
-
-        return count;
-    }}
-
+    }
 
     // Récupérer la liste de tous les joueurs existants
     public static List<Joueur> getAllJoueurs() throws SQLException {
@@ -393,8 +419,12 @@ public class Joueur extends ClasseMiroir {
                 int jour = rs.getInt("jour");
                 int annee = rs.getInt("annee");
                 StatutSexe sexe = null;
-                try { if(sexeStr != null) sexe = StatutSexe.valueOf(sexeStr); } catch (Exception e) {}
-                
+                try {
+                    if (sexeStr != null)
+                        sexe = StatutSexe.valueOf(sexeStr);
+                } catch (Exception e) {
+                }
+
                 list.add(new Joueur(id, surnom, sexe, taille, prenom, nom, mois, jour, annee));
             }
         }
@@ -402,54 +432,59 @@ public class Joueur extends ClasseMiroir {
     }
 
     public static List<Joueur> getClassementTournoi(int tournoiId) throws SQLException {
-    List<Joueur> classement = new ArrayList<>();
-    //on prend les infos du joueur ET ses points dans la table de liaison
-    String query = "SELECT j.*, p.points " +
-                   "FROM Joueur j " +
-                   "JOIN Points p ON j.id = p.idjoueur " +
-                   "WHERE p.idtournoi = ? " +
-                   "ORDER BY p.points DESC, j.surnom ASC"; // Tri par points, puis par surnom si égalité
+        List<Joueur> classement = new ArrayList<>();
+        // on prend les infos du joueur ET ses points dans la table de liaison
+        String query = "SELECT j.*, p.points " +
+                "FROM Joueur j " +
+                "JOIN Points p ON j.id = p.idjoueur " +
+                "WHERE p.idtournoi = ? " +
+                "ORDER BY p.points DESC, j.surnom ASC"; // Tri par points, puis par surnom si égalité
 
-    try (Connection con = ConnectionPool.getConnection();
-         PreparedStatement pst = con.prepareStatement(query)) {
-        
-        pst.setInt(1, tournoiId);
-        
-        try (ResultSet rs = pst.executeQuery()) {
-            while (rs.next()) {
-                // 1. Reconstituer le Joueur de base
-                Joueur j = new Joueur(
-                    rs.getInt("id"),
-                    rs.getString("surnom"),
-                    StatutSexe.valueOf(rs.getString("sexe")),
-                    rs.getInt("taille"),
-                    rs.getString("prenom"),
-                    rs.getString("nom"),
-                    rs.getInt("mois"), rs.getInt("jour"), rs.getInt("annee")
-                );
-                
-                // 2. Lui ajouter ses points pour ce tournoi (récupérés de la table Points)
-                j.setPointsDansTournoi(rs.getInt("points"));
-                
-                classement.add(j);
+        try (Connection con = ConnectionPool.getConnection();
+                PreparedStatement pst = con.prepareStatement(query)) {
+
+            pst.setInt(1, tournoiId);
+
+            try (ResultSet rs = pst.executeQuery()) {
+                while (rs.next()) {
+                    // 1. Reconstituer le Joueur de base
+                    Joueur j = new Joueur(
+                            rs.getInt("id"),
+                            rs.getString("surnom"),
+                            StatutSexe.valueOf(rs.getString("sexe")),
+                            rs.getInt("taille"),
+                            rs.getString("prenom"),
+                            rs.getString("nom"),
+                            rs.getInt("mois"), rs.getInt("jour"), rs.getInt("annee"));
+
+                    // 2. Lui ajouter ses points pour ce tournoi (récupérés de la table Points)
+                    j.setPointsDansTournoi(rs.getInt("points"));
+
+                    classement.add(j);
+                }
             }
         }
+        return classement;
     }
-    return classement;
-}
-    public int getPointsDansTournoi() { return pointsDansTournoi; }
-    public void setPointsDansTournoi(int points) { this.pointsDansTournoi = points; }
 
+    public int getPointsDansTournoi() {
+        return pointsDansTournoi;
+    }
 
+    public void setPointsDansTournoi(int points) {
+        this.pointsDansTournoi = points;
+    }
 
-    /*public static void main(String[] args) {
-        try {
-            Joueur j1 = new Joueur("testCre2", "J", 152);
-            int id = j1.saveInDB(ConnectionSimpleSGBD.defaultCon());
-        } catch (SQLException ex) {
-            throw new Error(ex);
-        }
-    }*/
+    /*
+     * public static void main(String[] args) {
+     * try {
+     * Joueur j1 = new Joueur("testCre2", "J", 152);
+     * int id = j1.saveInDB(ConnectionSimpleSGBD.defaultCon());
+     * } catch (SQLException ex) {
+     * throw new Error(ex);
+     * }
+     * }
+     */
 
     /**
      * @return the surnom
@@ -471,7 +506,7 @@ public class Joueur extends ClasseMiroir {
     public StatutSexe getSexe() {
         return sexe;
     }
-    
+
     public void setSexe(StatutSexe sexe) {
         this.sexe = sexe;
     }
@@ -489,9 +524,11 @@ public class Joueur extends ClasseMiroir {
     public void setTaille(int taille) {
         this.taille = taille;
     }
-    public int getScoretotal() { //a supprimer
+
+    public int getScoretotal() { // a supprimer
         return scoretotal;
     }
+
     public void setScoretotal(int scoretotal) {
         this.scoretotal = scoretotal;
     }
@@ -536,7 +573,77 @@ public class Joueur extends ClasseMiroir {
         this.annee = annee;
     }
 
+    // test commit Hack
 
-  
- //test commit Hack   
+    /**
+     * Récupère l'historique de tous les matchs terminés joués par un joueur.
+     * Cette méthode effectue une requête SQL complexe avec jointures multiples.
+     * 
+     * @param joueurId L'ID du joueur dont on veut l'historique
+     * @return Une liste de LigneHistoriqueDTO représentant chaque match joué
+     * @throws SQLException En cas d'erreur de base de données
+     */
+    public static List<LigneHistoriqueDTO> getHistoriqueMatchs(int joueurId) throws SQLException {
+        List<LigneHistoriqueDTO> historique = new ArrayList<>();
+
+        // Requête SQL complexe avec jointures multiples
+        // Parcours : Joueur -> Composition -> Equipe -> Matchs -> Ronde -> Tournoi
+        // ↓
+        // Equipe adverse -> Composition -> Joueur(s) adverses
+        String sql = "SELECT " +
+                "    t.nom AS nomTournoi, " +
+                "    r.numero AS numeroRonde, " +
+                "    eq_joueur.score AS scoreJoueur, " +
+                "    eq_adverse.score AS scoreAdverse, " +
+                "    GROUP_CONCAT(DISTINCT j_adverse.surnom SEPARATOR ', ') AS adversaires " +
+                "FROM Composition c " +
+                "JOIN Equipe eq_joueur ON c.idequipe = eq_joueur.id " +
+                "JOIN Matchs m ON (m.idequipe1 = eq_joueur.id OR m.idequipe2 = eq_joueur.id) " +
+                "JOIN Ronde r ON m.idronde = r.id " +
+                "JOIN Tournoi t ON r.idtournoi = t.id " +
+                "JOIN Equipe eq_adverse ON ( " +
+                "    (m.idequipe1 = eq_adverse.id OR m.idequipe2 = eq_adverse.id) " +
+                "    AND eq_adverse.id != eq_joueur.id " +
+                ") " +
+                "LEFT JOIN Composition c_adverse ON c_adverse.idequipe = eq_adverse.id " +
+                "LEFT JOIN Joueur j_adverse ON c_adverse.idjoueur = j_adverse.id " +
+                "WHERE c.idjoueur = ? " +
+                "  AND m.statut = 'TERMINE' " +
+                "GROUP BY m.id, t.nom, r.numero, eq_joueur.score, eq_adverse.score, t.id " +
+                "ORDER BY t.id DESC, r.numero DESC";
+
+        try (Connection con = ConnectionPool.getConnection();
+                PreparedStatement pst = con.prepareStatement(sql)) {
+
+            pst.setInt(1, joueurId);
+
+            try (ResultSet rs = pst.executeQuery()) {
+                while (rs.next()) {
+                    String nomTournoi = rs.getString("nomTournoi");
+                    int numeroRonde = rs.getInt("numeroRonde");
+                    int scoreJoueur = rs.getInt("scoreJoueur");
+                    int scoreAdverse = rs.getInt("scoreAdverse");
+                    String adversaires = rs.getString("adversaires");
+
+                    // Formatage du score "12 - 10"
+                    String score = scoreJoueur + " - " + scoreAdverse;
+
+                    // Déterminer si c'est une victoire
+                    boolean victoire = scoreJoueur > scoreAdverse;
+
+                    // Création du DTO
+                    LigneHistoriqueDTO ligne = new LigneHistoriqueDTO(
+                            nomTournoi,
+                            numeroRonde,
+                            adversaires != null ? adversaires : "Inconnu",
+                            score,
+                            victoire);
+
+                    historique.add(ligne);
+                }
+            }
+        }
+
+        return historique;
+    }
 }

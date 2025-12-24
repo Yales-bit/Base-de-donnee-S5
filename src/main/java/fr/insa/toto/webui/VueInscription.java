@@ -30,7 +30,6 @@ import fr.insa.toto.model.Enum_Mois;
 @Route(value = "inscription", layout = InterfacePrincipale.class)
 @PageTitle("Inscription")
 
-
 public class VueInscription extends VerticalLayout {
     public VueInscription() {
 
@@ -61,7 +60,7 @@ public class VueInscription extends VerticalLayout {
             try {
                 String Surnom = tfSurnom.getValue();
                 if (nfTaille.getValue() == null) {
-                     throw new Exception("Veuillez entrer une taille valide.");
+                    throw new Exception("Veuillez entrer une taille valide.");
                 }
                 String Nom = tfNom.getValue();
                 if (Nom == null) {
@@ -93,17 +92,31 @@ public class VueInscription extends VerticalLayout {
                 }
                 Joueur J = new Joueur(Surnom, Sexe, Taille, Nom, Prenom, Mois, Jour, Annee);
                 Joueur.creerJoueur(J);
-                Notification.show("Joueur créé avec succès ! " + "Surnom : " + Surnom + ", Taille : " + Taille + ", Sexe : " + Sexe.toString() + ", Nom : " + Nom + ", Prenom : " + Prenom + ", Mois : " + Mois + ", Jour : " + Jour + ", Annee : " + Annee)
-                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                tfSurnom.clear(); nfTaille.clear(); cbSexe.clear();          
-                tfNom.clear(); tfPrenom.clear(); nfJour.clear(); cbMois.clear(); nfAnnee.clear();
-                
+                Notification
+                        .show("Joueur créé avec succès ! " + "Surnom : " + Surnom + ", Taille : " + Taille + ", Sexe : "
+                                + Sexe.toString() + ", Nom : " + Nom + ", Prenom : " + Prenom + ", Mois : " + Mois
+                                + ", Jour : " + Jour + ", Annee : " + Annee)
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                tfSurnom.clear();
+                nfTaille.clear();
+                cbSexe.clear();
+                tfNom.clear();
+                tfPrenom.clear();
+                nfJour.clear();
+                cbMois.clear();
+                nfAnnee.clear();
+
+                // Bouton pour aller s'inscrire à un tournoi
+                Button btnVoirTournois = new Button("S'inscrire à un tournoi maintenant",
+                        ev -> getUI().ifPresent(ui -> ui.navigate("tournois")));
+                btnVoirTournois.getStyle().set("margin-top", "20px");
+                add(btnVoirTournois);
             } catch (NumberFormatException e) {
-                 Notification.show("Erreur : Veuillez entrer des nombres valides dans les champs numériques.");
+                Notification.show("Erreur : Veuillez entrer des nombres valides dans les champs numériques.");
             } catch (Exception e) {
                 Notification.show("Erreur : " + e.getMessage());
                 e.printStackTrace();
-            }        
+            }
         });
         Button bAnnuler = new Button("Annuler");
         bAnnuler.addClickListener(event -> {
@@ -119,7 +132,5 @@ public class VueInscription extends VerticalLayout {
         this.add(new HorizontalLayout(bValider, bAnnuler));
 
     }
-
-
 
 }
