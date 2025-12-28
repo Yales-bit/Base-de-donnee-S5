@@ -4,6 +4,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -14,6 +15,7 @@ import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.UI;
@@ -28,12 +30,17 @@ import fr.insa.toto.model.Ronde;
 import fr.insa.toto.model.Match;
 import fr.insa.toto.model.Joueur;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import fr.insa.toto.model.Joueur;
 import fr.insa.toto.model.Tournoi;
 import fr.insa.toto.webui.Session.Sessioninfo;
 import java.sql.SQLException;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import fr.insa.toto.model.StatutMatch;
+import java.util.ArrayList;
+import fr.insa.toto.model.StatutRonde;
 
 @Route(value = "tournoi", layout = InterfacePrincipale.class) // L'URL sera .../tournoi/ID
 @PageTitle("Détails du Tournoi")
@@ -364,45 +371,176 @@ private void actualiserAffichageRondes(Tournoi t) {
         List<Ronde> rondes = Ronde.getRondesDuTournoi(t.getId());
 
         if (rondes.isEmpty()) {
-            // Si pas de rondes (tournoi pas encore démarré), on met un petit message
-            VerticalLayout emptyLayout = new VerticalLayout(new Span("Le tournoi n'a pas encore démarré. Les matchs apparaîtront ici."));
-            accordionRondes.add("En attente", emptyLayout);
+            accordionRondes.add("En attente", new VerticalLayout(new Span("Le tournoi n'a pas encore démarré.")));
             return;
         }
 
         for (Ronde ronde : rondes) {
-            // a. On crée un layout vertical pour empiler les matchs de cette ronde
-            VerticalLayout layoutMatchsDeLaRonde = new VerticalLayout();
-            layoutMatchsDeLaRonde.setPadding(false);
-            layoutMatchsDeLaRonde.setSpacing(true); // Un petit espace entre les matchs
+            VerticalLayout contentLayout = new VerticalLayout();
+            contentLayout.setPadding(false);
+            contentLayout.setSpacing(true);
 
-            // b. On crée la liste des matchs de cette ronde
             List<Match> matchs = Match.getMatchsDeLaRonde(ronde.getId());
+            // Liste pour garder une référence vers les cartes actives (pour la sauvegarde)
+            List<MatchCard> activeCards = new ArrayList<>();
 
             if (matchs.isEmpty()) {
-                 layoutMatchsDeLaRonde.add(new Span("Aucun match généré pour cette ronde."));
+                 contentLayout.add(new Span("Aucun match généré pour cette ronde."));
             } else {
-                // c. Pour chaque match, on crée une MatchCard et on l'ajoute
                 for (Match match : matchs) {
                     MatchCard card = new MatchCard(match);
-                    layoutMatchsDeLaRonde.add(card);
+                    contentLayout.add(card);
+                    // Si c'est une carte de saisie (admin + pas terminé), on la garde en mémoire
+                    if(Sessioninfo.adminConnected() && match.getStatut() != StatutMatch.TERMINE) {
+                        activeCards.add(card);
+                    }
                 }
             }
+            if (ronde.getStatut() == StatutRonde.EN_COURS) {
+            try {
+    // On récupère les joueurs qui n'ont pas joué à CETTE ronde
+    List<Joueur> joueursExempts = Ronde.getJoueursPrioritaires(t.getId(), ronde.getNumero()+1);
 
-            String titrePanel = "Ronde " + ronde.getNumero() + " (" + ronde.getStatut() + ")";//////-/
+    if (!joueursExempts.isEmpty()) {
+        // CAS 1 : IL Y A DES EXEMPTS -> On affiche la boîte grise (Code existant)
+        VerticalLayout exemptsBox = new VerticalLayout();
+        exemptsBox.addClassName(LumoUtility.Background.CONTRAST_5);
+        exemptsBox.addClassName(LumoUtility.BorderRadius.MEDIUM);
+        exemptsBox.addClassName(LumoUtility.Margin.Top.MEDIUM);
+        exemptsBox.setPadding(true);
+        exemptsBox.setSpacing(false);
+        exemptsBox.setWidthFull();
+        exemptsBox.setMaxWidth("600px");
 
-            AccordionPanel panel = accordionRondes.add(titrePanel, layoutMatchsDeLaRonde);
+        H5 titreExempts = new H5("Joueurs exemptés de cette ronde (prioritaires au prochain tour)");
+        titreExempts.addClassName(LumoUtility.Margin.Top.NONE);
+        titreExempts.addClassName(LumoUtility.Margin.Bottom.SMALL);
+        titreExempts.addClassName(LumoUtility.TextColor.SECONDARY);
 
-            // Si c'est la ronde en cours, on l'ouvre par défaut
-            if (ronde.getStatut().toString().equals("EN_COURS")) {
+        String listeNomsStr = joueursExempts.stream()
+            .map(j -> j.getPrenom() + " " + j.getNom().toUpperCase())
+            .collect(Collectors.joining(", "));
+
+        Span nomsSpan = new Span(listeNomsStr);
+        nomsSpan.addClassName(LumoUtility.FontWeight.MEDIUM);
+        nomsSpan.addClassName(LumoUtility.TextColor.PRIMARY);
+
+        exemptsBox.add(titreExempts, nomsSpan);
+        contentLayout.add(exemptsBox);
+        contentLayout.setHorizontalComponentAlignment(Alignment.CENTER, exemptsBox);
+
+    } else {
+        // CAS 2 : AJOUT ICI -> PAS D'EXEMPTS (Tout le monde joue)
+        // On affiche un simple petit texte informatif
+        Span noExemptsSpan = new Span("ℹ️ Tous les joueurs disponibles participent à cette ronde.");
+
+        // Un peu de style pour que ça fasse propre et discret (gris, petite police)
+        noExemptsSpan.addClassName(LumoUtility.TextColor.SECONDARY);
+        noExemptsSpan.addClassName(LumoUtility.FontSize.SMALL);
+        noExemptsSpan.addClassName(LumoUtility.Margin.Top.SMALL);
+
+        // On l'ajoute au layout principal, centré
+        contentLayout.add(noExemptsSpan);
+        contentLayout.setHorizontalComponentAlignment(Alignment.CENTER, noExemptsSpan);
+    }
+
+} catch (SQLException e) {
+    System.err.println("Erreur chargement exempts pour ronde " + ronde.getNumero() + " : " + e.getMessage());
+}
+            }
+
+            // --- GESTION DES BOUTONS D'ACTION POUR LA RONDE EN COURS ---
+            if (Sessioninfo.adminConnected() && ronde.getStatut() == StatutRonde.EN_COURS) {
+                
+                HorizontalLayout buttonsLayout = new HorizontalLayout();
+                buttonsLayout.setWidthFull();
+                buttonsLayout.setJustifyContentMode(JustifyContentMode.END);
+
+                // Bouton 1 : Sauvegarder (Brouillon)
+                Button btnSaveDraft = new Button("Sauvegarder les scores", VaadinIcon.DISC.create());
+                btnSaveDraft.addClickListener(e -> {
+                    try {
+                        int saveCount = 0;
+                        for (MatchCard card : activeCards) {
+                            // Appelle la nouvelle méthode de sauvegarde temporaire
+                            Match.sauvegarderScoresTemporaires(card.getMatch().getId(), card.getScore1Saisi(), card.getScore2Saisi());
+                            saveCount++;
+                        }
+                        Notification.show(saveCount + " scores sauvegardés (brouillon).")
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        // Pas besoin de recharger toute la page, les champs sont déjà à jour visuellement
+                    } catch (Exception ex) {
+                         Notification.show("Erreur sauvegarde : " + ex.getMessage()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                });
+
+                // Bouton 2 : Clôturer la ronde (Actif seulement si tout semble saisi)
+                Button btnCloturer = new Button("CLÔTURER LA RONDE & DISTRIBUER LES POINTS", VaadinIcon.CHECK_CIRCLE.create());
+                btnCloturer.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR); // Rouge pour signaler une action importante
+                
+                // Vérification basique : est-ce que tous les champs ont une valeur ?
+                boolean allScoresEntered = activeCards.stream().allMatch(MatchCard::scoresSontSaisis);
+                btnCloturer.setEnabled(allScoresEntered);
+                if(!allScoresEntered) {
+                    btnCloturer.setTooltipText("Saisissez tous les scores pour activer la clôture.");
+                }
+
+                btnCloturer.addClickListener(e -> {
+                     Dialog confirmDialog = new Dialog();
+                     confirmDialog.setHeaderTitle("Confirmer la clôture de la Ronde " + ronde.getNumero());
+                     confirmDialog.add(new VerticalLayout(
+                         new Span("Attention : Cette action est irréversible."),
+                         new Span("Les scores seront figés et les points distribués aux joueurs."),
+                         new Span("Êtes-vous sûr ?")
+                     ));
+                     
+                     Button confirmBtn = new Button("Oui, clôturer et passer à la suite", event -> {
+                        try {
+                            confirmDialog.close();
+                            
+                            ronde.cloturerRondeEtDistribuerPoints();
+                            Notification.show("Ronde " + ronde.getNumero() + " clôturée. Points distribués.")
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                                
+                            tournoiActuel.passerRondeSuivante();
+                            Tournoi tCheck = Tournoi.getTournoiById(tournoiActuel.getId());
+                            if(tCheck.isFini()) {
+                                Notification.show("Le tournoi est maintenant TERMINÉ ! Félicitations aux vainqueurs.", 5000, Notification.Position.MIDDLE)
+                                    .addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+                            } else {
+                                Notification.show("La ronde suivante a démarré ! Les nouveaux matchs sont générés.", 3000, Notification.Position.TOP_CENTER)
+                                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                            }
+                            
+                            UI.getCurrent().getPage().reload();
+                            
+                        } catch (Exception ex) {
+                            Notification.show("Erreur lors de l'opération : " + ex.getMessage(), 5000, Notification.Position.MIDDLE)
+                                .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                            ex.printStackTrace();
+                        }
+                    });
+                     confirmBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+                     
+                     confirmDialog.getFooter().add(new Button("Annuler", event -> confirmDialog.close()));
+                     confirmDialog.getFooter().add(confirmBtn);
+                     confirmDialog.open();
+                });
+
+                buttonsLayout.add(btnSaveDraft, btnCloturer);
+                contentLayout.add(buttonsLayout);
+            }
+
+
+            AccordionPanel panel = accordionRondes.add("Ronde " + ronde.getNumero() + " (" + ronde.getStatut() + ")", contentLayout);
+            if (ronde.getStatut() == StatutRonde.EN_COURS) {
                   panel.setOpened(true);
             }
         }
 
     } catch (SQLException e) {
-        Notification.show("Erreur lors du chargement des matchs : " + e.getMessage())
+        Notification.show("Erreur chargement des matchs : " + e.getMessage())
             .addThemeVariants(NotificationVariant.LUMO_ERROR);
-        e.printStackTrace();
     }
 }
 }

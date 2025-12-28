@@ -57,7 +57,6 @@ protected Statement saveSansId(Connection con) throws SQLException {
 public static Match getMatchById(int matchId, Connection con) throws SQLException {
     String sql = "SELECT * FROM Matchs WHERE id = ?";
     
-    // Gestion de la connexion : utiliser celle fournie ou en ouvrir une nouvelle temporaire
     Connection connectionToUse = con;
     boolean mustCloseConnection = false;
     if (connectionToUse == null) {
@@ -69,23 +68,20 @@ public static Match getMatchById(int matchId, Connection con) throws SQLExceptio
         pst.setInt(1, matchId);
         try (ResultSet rs = pst.executeQuery()) {
             if (rs.next()) {
-                // 1. Récupérer les IDs des objets liés
                 int idRonde = rs.getInt("idronde");
                 int idEq1 = rs.getInt("idequipe1");
                 int idEq2 = rs.getInt("idequipe2");
 
-                // charger les objets complets via leurs méthodes dédiées
-                Ronde ronde = Ronde.getRonde(idRonde);
-                Equipe eq1 = Equipe.getEquipeById(idEq1);
-                Equipe eq2 = Equipe.getEquipeById(idEq2);
+                // --- CORRECTION ICI ---
+                // On utilise les versions qui acceptent la connexion 'connectionToUse'
+                Ronde ronde = Ronde.getRonde(idRonde, connectionToUse);
+                Equipe eq1 = Equipe.getEquipeById(idEq1, connectionToUse);
+                Equipe eq2 = Equipe.getEquipeById(idEq2, connectionToUse);
 
-                // Petit contrôle de sécurité 
                 if (ronde == null || eq1 == null || eq2 == null) {
-                    // Logiquement impossible à cause des clés étrangères, mais bon...
                     throw new SQLException("Incohérence en base : données liées au match introuvables.");
                 }
 
-                // 3. Retourner le Match complet
                 return new Match(
                     rs.getInt("id"),
                     ronde,
@@ -96,14 +92,13 @@ public static Match getMatchById(int matchId, Connection con) throws SQLExceptio
             }
         }
     } finally {
-        // Si on a ouvert une connexion juste pour cette méthode, on la ferme
         if (mustCloseConnection && connectionToUse != null) {
             connectionToUse.close();
         }
     }
-    return null; // Match non trouvé
+    return null;
 }
-public static void validerResultatMatch(int matchId, int scoreEquipe1, int scoreEquipe2) throws Exception {
+/*public static void validerResultatMatch(int matchId, int scoreEquipe1, int scoreEquipe2) throws Exception {
     Connection con = null;
     try {
         con = ConnectionPool.getConnection();
@@ -181,35 +176,68 @@ public static void validerResultatMatch(int matchId, int scoreEquipe1, int score
         }
     }
 }
+*/
 
-// --- MÉTHODE PRIVÉE UTILITAIRE POUR LA DISTRIBUTION ---
-private static void distribuerPointsAuxJoueurs(Connection con, List<Joueur> joueurs, int pointsAGagner, int idTournoi) throws SQLException {
+public static void sauvegarderScoresTemporaires(int matchId, int scoreEquipe1, int scoreEquipe2) throws Exception {
+    String sql = """
+        UPDATE Equipe e
+        JOIN Matchs m ON (e.id = m.idequipe1 OR e.id = m.idequipe2)
+        SET e.score = CASE 
+            WHEN e.id = m.idequipe1 THEN ?
+            WHEN e.id = m.idequipe2 THEN ?
+        END
+        WHERE m.id = ?;
+    """;
+    try (Connection con = ConnectionPool.getConnection();
+         PreparedStatement pst = con.prepareStatement(sql)) {
+         
+        pst.setInt(1, scoreEquipe1);
+        pst.setInt(2, scoreEquipe2);
+        pst.setInt(3, matchId);
+        
+        int updatedRows = pst.executeUpdate();
+        if (updatedRows == 0) {
+             throw new Exception("Impossible de mettre à jour les scores pour le match " + matchId);
+        }
+    } catch (SQLException e) {
+        throw new Exception("Erreur SQL lors de la sauvegarde des scores : " + e.getMessage(), e);
+    }
+}
+public static void distribuerPointsAuxJoueurs(Connection con, List<Joueur> joueurs, int pointsAGagner, int idTournoi) throws SQLException {
     if (pointsAGagner == 0 || joueurs.isEmpty()) return;
 
-    String sqlUpdatePoints = "UPDATE Points SET points = points + ? WHERE idjoueur = ? AND idtournoi = ?";
+    String sqlUpsertPoints = """
+        INSERT INTO Points (idjoueur, idtournoi, points) VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE points = points + VALUES(points)
+    """;
     
-    try (PreparedStatement pst = con.prepareStatement(sqlUpdatePoints)) {
+    try (PreparedStatement pst = con.prepareStatement(sqlUpsertPoints)) {
         for (Joueur j : joueurs) {
-            pst.setInt(1, pointsAGagner);
-            pst.setInt(2, j.getId());
-            pst.setInt(3, idTournoi);
+            pst.setInt(1, j.getId());
+            pst.setInt(2, idTournoi);
+            pst.setInt(3, pointsAGagner); 
             pst.addBatch();
         }
         pst.executeBatch();
     }
 }
 public static List<Match> getMatchsDeLaRonde(int idRonde) throws SQLException {
+    try (Connection con = ConnectionPool.getConnection()) {
+        return getMatchsDeLaRonde(idRonde, con);
+    }
+}
+
+public static List<Match> getMatchsDeLaRonde(int idRonde, Connection con) throws SQLException {
     List<Match> matchs = new ArrayList<>();
     String sql = "SELECT id FROM Matchs WHERE idronde = ?";
 
-    try (Connection con = ConnectionPool.getConnection();
-         PreparedStatement pst = con.prepareStatement(sql)) {
-        
+    // Note : pas de try-with-resources sur 'con' ici !
+    try (PreparedStatement pst = con.prepareStatement(sql)) {
         pst.setInt(1, idRonde);
-        
         try (ResultSet rs = pst.executeQuery()) {
             while (rs.next()) {
                 int idMatch = rs.getInt("id");
+                // On passe la connexion existante 'con'
                 Match m = Match.getMatchById(idMatch, con);
                 if (m != null) {
                     matchs.add(m);
@@ -219,7 +247,14 @@ public static List<Match> getMatchsDeLaRonde(int idRonde) throws SQLException {
     }
     return matchs;
 }
-
+public void updateStatut(Connection con) throws SQLException {
+     String sql = "UPDATE Matchs SET statut = ? WHERE id = ?";
+     try (PreparedStatement pst = con.prepareStatement(sql)) {
+         pst.setString(1, this.statut.name());
+         pst.setInt(2, this.getId());
+         pst.executeUpdate();
+     }
+}
 
     // Getters et Setters
 

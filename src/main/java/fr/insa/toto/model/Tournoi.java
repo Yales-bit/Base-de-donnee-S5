@@ -239,8 +239,8 @@ public class Tournoi extends ClasseMiroir {
 
 @Override
 protected Statement saveSansId(Connection con) throws SQLException {
-    PreparedStatement pst = con.prepareStatement("insert into Tournoi (nombrejoueursparequipe, dureematch, nbrequipemax, nbrequipemin, nbrrondes, nom, nbreterrains, ouvert, fini) \n"
-            + "values(?,?,?,?,?,?,?,?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
+    PreparedStatement pst = con.prepareStatement("insert into Tournoi (nbrjoueursparequipe, dureematch, nbrequipemax, nbrequipemin, nbrrondes, nom, nbreterrains, ouvert, fini) \n"
+            + "values(?,?,?,?,?,?,?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
     
     pst.setInt(1, this.nbrjoueursparequipe);
     //pst.setInt(2, this.nbrequipes);
@@ -398,7 +398,7 @@ public boolean estNombreJoueursSuffisant() throws SQLException {
 private void genererMatchsPourRonde(Ronde ronde) throws Exception {
     
     List<Joueur> tousInscrits = this.getJoueursInscrits();
-    List<Joueur> prioritaires = Ronde.getJoueursPrioritaires(this.getId(), ronde.getNumero());
+    List<Joueur> prioritaires = Ronde.getJoueursPrioritaires(this.getId(), ronde.getNumero()-1);
     
     // Liste des joueurs "normaux" (Inscrits - Prioritaires)
     List<Joueur> normaux = new ArrayList<>(tousInscrits);
@@ -442,12 +442,12 @@ private void genererMatchsPourRonde(Ronde ronde) throws Exception {
             String nomEq1 = "T" + this.getId() + "-R" + ronde.getNumero() + "-M" + compteurMatch + "-A";
             Equipe eq1 = new Equipe(nomEq1, ronde.getId());
             eq1.saveInDB(con);
-            eq1.ajouterJoueurs(groupe1);
+            eq1.ajouterJoueurs(con, groupe1);
 
             String nomEq2 = "T" + this.getId() + "-R" + ronde.getNumero() + "-M" + compteurMatch + "-B";
             Equipe eq2 = new Equipe(nomEq2, ronde.getId());
             eq2.saveInDB(con);
-            eq2.ajouterJoueurs(groupe2);
+            eq2.ajouterJoueurs(con, groupe2);
 
             Match m = new Match(ronde, eq1, eq2);
             m.saveInDB(con);
@@ -508,35 +508,98 @@ public void lancerTournoi() throws Exception {
 }
 
 public void passerRondeSuivante() throws Exception {
-    // trouver la dernière ronde active (celle qui est EN COURS ou TERMINEE avec le plus grand numero)
-    Ronde derniereRonde = Ronde.getDerniereRonde(this.getId()); 
+    System.out.println("Tentative de passage à la ronde suivante pour le tournoi " + this.getId());
 
-    if (derniereRonde.getStatut() != StatutRonde.EN_COURS) {
-        throw new Exception("Impossible de passer de ronde. La ronde " + derniereRonde.getNumero() + " n'est pas encore terminée.");
-    }
-    
-    int numeroProchaineRonde = derniereRonde.getNumero() + 1;
+    // 1. On demande à la base : quelle est la prochaine ronde en attente ?
+    Ronde prochaineRonde = Ronde.getProchaineRondeEnAttente(this.getId());
 
-    // recuperer la prochaine ronde (qui existe mais qui n'a pas encore commencé)
-    Ronde prochaineRonde = Ronde.getRondeParNumero(this.getId(), numeroProchaineRonde);
+    if (prochaineRonde == null) {
+        // CAS A : Plus aucune ronde en attente. Le tournoi est donc TERMINÉ.
+        System.out.println("Aucune ronde en attente trouvée. Fin du tournoi " + this.getNom());
 
-    if (prochaineRonde == null){
-        System.out.println("Plus de rondes suivantes. Le tournoi est terminé !");
-        
         this.setFini(true);
-        this.setOuvert(false); // Sécurité supplémentaire
-        
+        this.setOuvert(false); // On ferme le tournoi par sécurité
+
         try (Connection con = ConnectionPool.getConnection()) {
-            // On sauvegarde le nouvel état "fini" en base
+            // On sauvegarde le nouveau statut "fini" en base
             this.updateStatutTournoi(con);
         }
+        // C'est fini, on s'arrête là.
         return;
     }
 
-    System.out.println("Passage de la ronde " + derniereRonde.getNumero() + " à la ronde " + prochaineRonde.getNumero() + ".");
+    // CAS B : Une ronde en attente a été trouvée. ON LA DÉMARRE.
+    System.out.println("Prochaine ronde trouvée : Ronde n°" + prochaineRonde.getNumero() + " (ID: " + prochaineRonde.getId() + "). Démarrage...");
 
+    // 1. Changer son statut pour qu'elle apparaisse "En cours"
     prochaineRonde.updateStatutRonde(StatutRonde.EN_COURS);
+
+    // 2. Générer ses matchs et les sauvegarder en base
+    // (Utilise la méthode existante qui gère les priorités si ce n'est pas la ronde 1)
     this.genererMatchsPourRonde(prochaineRonde);
+
+    System.out.println("Ronde n°" + prochaineRonde.getNumero() + " démarrée avec succès.");
+}
+
+public static void supprimerTournoi(int idTournoi) throws Exception {
+    Connection con = null;
+    try {
+        con = ConnectionPool.getConnection();
+        con.setAutoCommit(false); // Démarrage transaction
+
+        System.out.println("Début de la suppression en cascade du tournoi " + idTournoi);
+
+   
+        deleteData(con, "DELETE FROM Points WHERE idtournoi = ?", idTournoi);
+        deleteData(con, "DELETE FROM Inscription WHERE idtournoi = ?", idTournoi);
+
+
+ 
+        deleteData(con, "DELETE FROM Matchs WHERE idronde IN (SELECT id FROM Ronde WHERE idtournoi = ?)", idTournoi);
+
+
+        
+        String sqlDeleteCompo = "DELETE c FROM Composition c INNER JOIN Equipe e ON c.idequipe = e.id INNER JOIN Ronde r ON e.idronde = r.id WHERE r.idtournoi = ?";
+        deleteData(con, sqlDeleteCompo, idTournoi);
+
+
+ 
+        String sqlDeleteEquipes = "DELETE e FROM Equipe e INNER JOIN Ronde r ON e.idronde = r.id WHERE r.idtournoi = ?";
+        deleteData(con, sqlDeleteEquipes, idTournoi);
+
+
+
+        String sqlDeleteParticipation = "DELETE FROM ParticipationRonde WHERE idronde IN (SELECT id FROM Ronde WHERE idtournoi = ?)";
+        deleteData(con, sqlDeleteParticipation, idTournoi);
+
+
+    
+        deleteData(con, "DELETE FROM Ronde WHERE idtournoi = ?", idTournoi);
+
+
+
+        int deleted = deleteData(con, "DELETE FROM Tournoi WHERE id = ?", idTournoi);
+
+        if (deleted == 0) {
+            throw new Exception("Tournoi introuvable (ID: " + idTournoi + "), aucune suppression effectuée.");
+        }
+
+        con.commit(); // Validation de la transaction
+        System.out.println("Suppression du tournoi " + idTournoi + " terminée avec succès.");
+
+    } catch (Exception e) {
+        if (con != null) try { con.rollback(); System.err.println("Rollback effectué."); } catch (SQLException ex) {}
+        throw new Exception("Erreur critique lors de la suppression du tournoi : " + e.getMessage(), e);
+    } finally {
+        if (con != null) try { con.setAutoCommit(true); con.close(); } catch (SQLException e) {}
+    }
+}
+
+private static int deleteData(Connection con, String sql, int paramId) throws SQLException {
+    try (PreparedStatement pst = con.prepareStatement(sql)) {
+        pst.setInt(1, paramId);
+        return pst.executeUpdate();
+    }
 }
 
 public void updateStatutTournoi(Connection con) throws SQLException {

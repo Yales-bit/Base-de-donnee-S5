@@ -45,26 +45,26 @@ public class Equipe extends ClasseMiroir {
         this.score = 0;
         this.idronde = idronde;
     }
-public void ajouterJoueurs(List<Joueur> joueurs) throws Exception {
-        if (this.getId() == -1) {
+public void ajouterJoueurs(Connection con, List<Joueur> joueurs) throws Exception {
+       if (this.getId() == -1) {
              throw new Exception("Erreur technique : L'équipe doit être sauvegardée en base avant d'y ajouter des joueurs.");
-        }
+       }
 
-        String sql = "INSERT INTO Composition (idequipe, idjoueur) VALUES (?, ?)";
-        
-        try (Connection con = ConnectionPool.getConnection();
-             PreparedStatement pst = con.prepareStatement(sql)) {
-            
-            // On utilise le "batch" (traitement par lot) pour être plus efficace
-            for (Joueur j : joueurs) {
-                pst.setInt(1, this.getId());
-                pst.setInt(2, j.getId());
-                pst.addBatch(); // Ajoute à la liste des requêtes à exécuter
-            }
-            // Exécute toutes les insertions d'un coup
-            pst.executeBatch(); 
-        }
-    }
+       String sql = "INSERT INTO Composition (idequipe, idjoueur) VALUES (?, ?)";
+       
+       // CORRECTION : On utilise la connexion passée en paramètre !
+       // On enlève le try-with-resources sur la connection
+       try (PreparedStatement pst = con.prepareStatement(sql)) {
+           
+           for (Joueur j : joueurs) {
+               pst.setInt(1, this.getId());
+               pst.setInt(2, j.getId());
+               pst.addBatch();
+           }
+           pst.executeBatch(); 
+       }
+       // Pas de catch/finally ici, on laisse l'appelant gérer la transaction
+}
     public List<Joueur> getJoueurs() throws Exception { //renvoit tous les joueurs d'une equipe
      List<Joueur> joueurs = new ArrayList<>();
         String sql = "SELECT j.* FROM Joueur j " +
@@ -88,13 +88,19 @@ public void ajouterJoueurs(List<Joueur> joueurs) throws Exception {
     return joueurs;
 }
 public static Equipe getEquipeById(int id) throws SQLException {
+    try (Connection con = ConnectionPool.getConnection()) {
+        return getEquipeById(id, con);
+    }
+}
+
+
+public static Equipe getEquipeById(int id, Connection con) throws SQLException {
     String sql = "SELECT * FROM Equipe WHERE id = ?";
-    try (Connection con = ConnectionPool.getConnection();
-         PreparedStatement pst = con.prepareStatement(sql)) {
+    // Note : pas de try-with-resources sur 'con' ici !
+    try (PreparedStatement pst = con.prepareStatement(sql)) {
         pst.setInt(1, id);
         try (ResultSet rs = pst.executeQuery()) {
             if (rs.next()) {
-                // On reconstruit l'objet complet
                 return new Equipe(
                     rs.getInt("id"),
                     rs.getString("nom"),
@@ -104,7 +110,7 @@ public static Equipe getEquipeById(int id) throws SQLException {
             }
         }
     }
-    return null; // Pas trouvée
+    return null;
 }
 
 @Override

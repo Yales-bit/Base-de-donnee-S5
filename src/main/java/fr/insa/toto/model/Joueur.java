@@ -369,7 +369,7 @@ public class Joueur extends ClasseMiroir {
                 .prepareStatement("insert into Joueur (surnom, sexe, taille, prenom, nom, mois, jour, annee) \n"
                         + "values(?,?,?,?,?,?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS);
         pst.setString(1, this.surnom);
-        pst.setString(2, this.sexe.toString());
+        pst.setString(2, this.sexe.name());
         pst.setInt(3, this.taille);
         pst.setString(4, this.prenom);
         pst.setString(5, this.nom);
