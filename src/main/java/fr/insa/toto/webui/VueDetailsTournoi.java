@@ -7,7 +7,9 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.H5;
@@ -19,12 +21,14 @@ import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import fr.insa.toto.model.*;
+import fr.insa.toto.model.dto.LigneClassement;
 import fr.insa.toto.webui.Session.Sessioninfo;
 
 import java.sql.SQLException;
@@ -48,10 +52,16 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
     private H4 titreParticipants = new H4("Participants inscrits");
     private Accordion accordionRondes = new Accordion();
     private Button btnRetour = new Button("Retour liste", VaadinIcon.ARROW_LEFT.create());
-
+    private Grid<LigneClassement> gridClassement = new Grid<>();
+    private VerticalLayout contenuOngletClassement = new VerticalLayout();
     private Grid<Joueur> gridParticipants = new Grid<>(Joueur.class);
+    //private List<LigneClassement> classementCompletCache = new ArrayList<>();
+  //  private com.vaadin.flow.component.html.Input sliderTopN = new com.vaadin.flow.component.html.Input();
+    //private Span sliderLabelValue = new Span(); 
+    private Button btnVoirPodium = new Button("VOIR LE PODIUM FINAL 🏆");
 
     public VueDetailsTournoi() {
+        setSizeFull();
         setAlignItems(Alignment.CENTER);
 
         btnRetour.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate(VueListeTournois.class)));
@@ -107,10 +117,11 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
 
 
         TabSheet tabSheet = new TabSheet();
-        tabSheet.setWidthFull();
+        tabSheet.setSizeFull();
         tabSheet.add("Informations", contenuOngletInfos);
         tabSheet.add("Matchs & Résultats", contenuOngletMatchs);
         add(tabSheet);
+        setFlexGrow(1, tabSheet);
 
         btnDemarrer.addClickListener(e -> {
             if (tournoiActuel == null) return;
@@ -125,6 +136,8 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
                 ex.printStackTrace();
             }
         });
+        configureGridClassement(); // On appelle la méthode de config (à créer plus bas)
+        tabSheet.add("Classement Général", contenuOngletClassement);
     }
 
     @Override
@@ -200,6 +213,23 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
             }
         });
         actualiserAffichageRondes(t);
+        actualiserClassement();
+
+        btnVoirPodium.setVisible(false); // Caché par défaut
+        btnVoirPodium.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE);
+        // Une couleur dorée/jaune pour le côté festif
+        btnVoirPodium.getElement().getStyle().set("background-color", "#FFD700"); 
+        btnVoirPodium.getElement().getStyle().set("color", "black");
+        btnVoirPodium.getElement().getStyle().set("font-weight", "bold");
+        btnVoirPodium.getElement().getStyle().set("margin-top", "20px");
+        if (t.isFini()) {
+            btnVoirPodium.setVisible(true);
+            btnVoirPodium.addClickListener(e -> {
+                 // Navigation vers la nouvelle vue avec l'ID du tournoi
+                 UI.getCurrent().navigate(VuePodium.class, t.getId());
+            });
+            add(btnVoirPodium);
+        }
     }
 
 
@@ -454,6 +484,7 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
                                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
                                 tournoiActuel.passerRondeSuivante();
+                                actualiserClassement();
                                 Tournoi tCheck = Tournoi.getTournoiById(tournoiActuel.getId());
                                 if (tCheck.isFini()) {
                                     Notification.show("Le tournoi est maintenant TERMINÉ ! Félicitations aux vainqueurs.", 5000, Notification.Position.MIDDLE)
@@ -492,6 +523,91 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
         } catch (SQLException e) {
             Notification.show("Erreur chargement des matchs : " + e.getMessage())
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+    }
+    
+    private void configureGridClassement() {
+        contenuOngletClassement.setSizeFull();
+        contenuOngletClassement.setPadding(false); 
+        contenuOngletClassement.setSpacing(false);
+
+        // --- CONFIGURATION DU SLIDER (CURSEUR) ---
+        /*sliderTopN.setType("range");
+        sliderTopN.getElement().setAttribute("min", "1");
+        sliderTopN.getElement().setAttribute("max", "10"); 
+        sliderTopN.getElement().setProperty("value", "10");
+        
+        sliderTopN.setWidth("200px");
+        sliderTopN.setValue("10"); // Valeur par défaut
+        sliderTopN.setWidth("200px");
+
+        sliderLabelValue.setText("Afficher le Top 10");
+        sliderLabelValue.addClassName(LumoUtility.FontWeight.BOLD);
+        sliderLabelValue.getElement().getStyle().set("margin-left", "10px");
+
+        // Listener : quand le curseur bouge, on filtre la grille
+        sliderTopN.getElement().addEventListener("input", e -> {
+            String val = sliderTopN.getValue();
+            sliderLabelValue.setText("Afficher le Top " + val);
+            filtrerGrilleClassement(Integer.parseInt(val));
+        });
+
+        HorizontalLayout headerFilter = new HorizontalLayout(new Span("Filtrer : "), sliderTopN, sliderLabelValue);
+        headerFilter.setAlignItems(Alignment.CENTER);*/
+        // -----------------------------------------
+
+        gridClassement.setSizeFull();
+        gridClassement.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
+
+        // ... (Vos colonnes de grille existantes ne changent pas) ...
+        gridClassement.addColumn(new ComponentRenderer<>(ligne -> {
+            Span rangSpan = new Span("#" + ligne.getRang());
+            rangSpan.addClassName(LumoUtility.FontWeight.BOLD);
+            if (ligne.getRang() == 1) rangSpan.getElement().getStyle().set("color", "gold");
+            else if (ligne.getRang() == 2) rangSpan.getElement().getStyle().set("color", "silver");
+            else if (ligne.getRang() == 3) rangSpan.getElement().getStyle().set("color", "#cd7f32"); // Bronze
+            return rangSpan;
+        })).setHeader("Rang").setWidth("70px").setFlexGrow(0);
+
+        gridClassement.addColumn(LigneClassement::getNomAffichage).setHeader("Joueur").setAutoWidth(true);
+
+        gridClassement.addColumn(new ComponentRenderer<>(ligne -> {
+            Span pointsSpan = new Span(ligne.getTotalPoints() + " pts");
+            pointsSpan.addClassName(LumoUtility.FontWeight.EXTRABOLD);
+            pointsSpan.addClassName(LumoUtility.FontSize.LARGE);
+            pointsSpan.addClassName(LumoUtility.TextColor.PRIMARY);
+            return pointsSpan;
+        })).setHeader("Total Points").setWidth("140px").setFlexGrow(0).setTextAlign(ColumnTextAlign.END);
+
+        // On ajoute le filtre PUIS la grille
+        contenuOngletClassement.add( gridClassement);
+        // La grille prend tout l'espace restant
+        contenuOngletClassement.setFlexGrow(1, gridClassement);
+    }
+    /*private void filtrerGrilleClassement(int n) {
+        List<LigneClassement> topNList = classementCompletCache.stream()
+                .limit(n)
+                .collect(Collectors.toList());
+        gridClassement.setItems(topNList);
+    }*/
+
+
+    private void actualiserClassement() {
+        if (tournoiActuel == null) return;
+        try {
+            // On récupère la liste complète et on l'affiche directement
+            List<LigneClassement> classement = tournoiActuel.getClassement();
+            gridClassement.setItems(classement);
+            
+            // Petit message optionnel si le tournoi est en cours mais qu'aucun point n'a été distribué
+            if (classement.isEmpty() && tournoiActuel.isOuvert() && !tournoiActuel.isFini()) {
+                 // Vous pouvez décommenter si vous voulez ce message
+                 // Notification.show("Le classement s'affichera ici après la première ronde.", 3000, Notification.Position.BOTTOM_START);
+            }
+            
+        } catch (SQLException e) {
+            Notification.show("Erreur chargement classement : " + e.getMessage()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+            e.printStackTrace();
         }
     }
 }

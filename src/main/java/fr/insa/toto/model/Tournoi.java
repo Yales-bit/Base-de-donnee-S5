@@ -26,6 +26,7 @@ package fr.insa.toto.model;
 import fr.insa.beuvron.utils.database.ClasseMiroir;
 import fr.insa.beuvron.utils.database.ConnectionPool;
 import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
+import fr.insa.toto.model.dto.LigneClassement;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -418,7 +419,7 @@ private void genererMatchsPourRonde(Ronde ronde) throws Exception {
         // On retire de la liste 'normaux' tout joueur dont l'ID est le même que celui du prioritaire
         normaux.removeIf(joueurNormal -> joueurNormal.getId() == prioritaire.getId());
     }
-    
+
     // Mélange aléatoire des deux groupes séparément
     Collections.shuffle(prioritaires);
     Collections.shuffle(normaux);
@@ -631,7 +632,49 @@ public void updateStatutTournoi(Connection con) throws SQLException {
         pst.executeUpdate();
     }
 }
+public List<LigneClassement> getClassement() throws SQLException {
+    List<LigneClassement> classement = new ArrayList<>();
 
+    String sql = """
+        SELECT j.*, p.points
+        FROM Points p
+        INNER JOIN Joueur j ON p.idjoueur = j.id
+        WHERE p.idtournoi = ?
+        ORDER BY p.points DESC, j.nom ASC, j.prenom ASC
+    """;
+
+    try (Connection con = ConnectionPool.getConnection();
+         PreparedStatement pst = con.prepareStatement(sql)) {
+        pst.setInt(1, this.getId());
+
+        try (ResultSet rs = pst.executeQuery()) {
+            int rang = 1; // Compteur simple pour le rang
+            
+            while (rs.next()) {
+                // 1. Reconstituer le Joueur (les colonnes j.* sont là)
+                Joueur j = new Joueur(
+                    rs.getInt("id"),
+                    rs.getString("surnom"),
+                    StatutSexe.valueOf(rs.getString("sexe")),
+                    rs.getInt("taille"),
+                    rs.getString("prenom"),
+                    rs.getString("nom"),
+                    rs.getInt("mois"),
+                    rs.getInt("jour"),
+                    rs.getInt("annee")
+                );
+                
+                // 2. Récupérer les points directement depuis la colonne 'points'
+                int points = rs.getInt("points");
+
+                // 3. Créer la ligne et l'ajouter
+                classement.add(new LigneClassement(rang, j, points));
+                rang++;
+            }
+        }
+    }
+    return classement;
+}
     public int getNbrJoueursParEquipe() {
         return nbrjoueursparequipe;
     }

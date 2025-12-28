@@ -115,3 +115,46 @@ vaadin-notification::part(content) {
     background-color: var(--lumo-primary-color);
     color: var(--lumo-primary-text-color);
 }
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.podium-container {
+    /* Fond dégradé festif */
+    background: linear-gradient(135deg, var(--lumo-base-color) 0%, var(--lumo-contrast-10pct) 100%);
+}
+
+/* Style des marches du podium */
+.podium-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 20px;
+    border-radius: var(--lumo-border-radius-l) var(--lumo-border-radius-l) 0 0;
+    box-shadow: var(--lumo-box-shadow-m);
+    /* L'animation est appliquée ici */
+    animation: slideUpFade 0.8s ease-out forwards;
+    opacity: 0; /* Caché au départ */
+}
+
+/* Délais pour l'effet "en cascade" : 2ème, puis 1er, puis 3ème */
+.podium-step.rank-2 { animation-delay: 0.2s; }
+.podium-step.rank-1 { animation-delay: 0.5s; z-index: 10;} /* Le 1er passe devant */
+.podium-step.rank-3 { animation-delay: 0.8s; }
+
+/* Couleurs spécifiques */
+.podium-step.rank-1 { background: linear-gradient(to top, #FFD700, #FFFACD); border: 2px solid gold; }
+.podium-step.rank-2 { background: linear-gradient(to top, #C0C0C0, #E6E6E6); border: 2px solid silver; }
+.podium-step.rank-3 { background: linear-gradient(to top, #CD7F32, #F4A460); border: 2px solid #cd7f32; }
+
+.player-name { font-weight: bold; font-size: 1.2em; text-align: center; margin-bottom: 10px; }
+.player-score { font-weight: 900; font-size: 2em; }
+.rank-number { font-size: 3em; font-weight: 900; opacity: 0.3; position: absolute; bottom: 10px; }

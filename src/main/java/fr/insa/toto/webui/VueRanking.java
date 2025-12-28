@@ -1,4 +1,4 @@
-package fr.insa.toto.webui;
+/*package fr.insa.toto.webui;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -82,7 +82,7 @@ public class VueRanking extends VerticalLayout {
         e.printStackTrace();
         }
     }
-}
+}*/
 
 
 
