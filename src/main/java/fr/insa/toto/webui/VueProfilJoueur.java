@@ -140,8 +140,7 @@ public class VueProfilJoueur extends VerticalLayout implements HasUrlParameter<I
         
         gridHistorique.addColumn(LigneHistoriqueDTO::getNumeroRonde)
                 .setHeader("Ronde").setSortable(true).setTextAlign(ColumnTextAlign.CENTER).setWidth("80px").setFlexGrow(0);
-        gridHistorique.addColumn(LigneHistoriqueDTO::getAdversaires)
-                .setHeader("Adversaire(s)").setAutoWidth(true);
+        
         
         gridHistorique.addColumn(LigneHistoriqueDTO::getScore)
                 .setHeader("Score").setTextAlign(ColumnTextAlign.CENTER).setWidth("100px").setFlexGrow(0);
@@ -156,7 +155,8 @@ public class VueProfilJoueur extends VerticalLayout implements HasUrlParameter<I
                     ligne.isVictoire() ? "var(--lumo-success-color-10pct)" : "var(--lumo-error-color-10pct)");
             return resultat;
         }).setHeader("Résultat").setTextAlign(ColumnTextAlign.CENTER).setWidth("120px").setFlexGrow(0);
-
+        gridHistorique.addColumn(LigneHistoriqueDTO::getAdversaires)
+                .setHeader("Adversaire(s)").setAutoWidth(true);
         gridHistorique.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
         gridHistorique.setAllRowsVisible(true);
     }

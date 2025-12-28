@@ -397,14 +397,28 @@ public boolean estNombreJoueursSuffisant() throws SQLException {
 
 private void genererMatchsPourRonde(Ronde ronde) throws Exception {
     
-    List<Joueur> tousInscrits = this.getJoueursInscrits();
+    /*List<Joueur> tousInscrits = this.getJoueursInscrits();
     List<Joueur> prioritaires = Ronde.getJoueursPrioritaires(this.getId(), ronde.getNumero()-1);
     
     // Liste des joueurs "normaux" (Inscrits - Prioritaires)
     List<Joueur> normaux = new ArrayList<>(tousInscrits);
 
-    normaux.removeAll(prioritaires);
+    for (Joueur prioritaire : prioritaires) {
+    // On supprime de la liste 'normaux' tout joueur ayant le même ID que le prioritaire
+    normaux.removeIf(normal -> normal.getId() == prioritaire.getId());*/
+    List<Joueur> tousInscrits = this.getJoueursInscrits();
+    List<Joueur> prioritaires = Ronde.getJoueursPrioritaires(this.getId(), ronde.getNumero()-1);
+    // Liste des joueurs "normaux" (Inscrits - Prioritaires)
+    List<Joueur> normaux = new ArrayList<>(tousInscrits);
 
+
+
+    //normaux.removeAll(prioritaires);
+    for (Joueur prioritaire : prioritaires) {
+        // On retire de la liste 'normaux' tout joueur dont l'ID est le même que celui du prioritaire
+        normaux.removeIf(joueurNormal -> joueurNormal.getId() == prioritaire.getId());
+    }
+    
     // Mélange aléatoire des deux groupes séparément
     Collections.shuffle(prioritaires);
     Collections.shuffle(normaux);
@@ -476,6 +490,7 @@ private void genererMatchsPourRonde(Ronde ronde) throws Exception {
         if (con != null) { con.setAutoCommit(true); con.close(); }
     }
 }
+
 
 public void lancerTournoi() throws Exception {
     if (!this.estNombreJoueursSuffisant()) {

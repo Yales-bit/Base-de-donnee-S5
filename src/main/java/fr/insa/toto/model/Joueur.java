@@ -466,6 +466,38 @@ public class Joueur extends ClasseMiroir {
         }
         return classement;
     }
+    public static List<Joueur> getJoueursInscritsComplets(int idTournoi) throws SQLException {
+    List<Joueur> joueurs = new ArrayList<>();
+    // Jointure entre Joueur et Inscription pour avoir les infos complètes
+    String sql = """
+        SELECT j.*
+        FROM Joueur j
+        INNER JOIN Inscription i ON j.id = i.idjoueur
+        WHERE i.idtournoi = ?
+    """;
+
+    try (Connection con = ConnectionPool.getConnection();
+         PreparedStatement pst = con.prepareStatement(sql)) {
+        pst.setInt(1, idTournoi);
+        try (ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                // Adapte le constructeur à ta classe Joueur
+                joueurs.add(new Joueur(
+                    rs.getInt("id"),
+                    rs.getString("surnom"),
+                    StatutSexe.valueOf(rs.getString("sexe")),
+                    rs.getInt("taille"),
+                    rs.getString("prenom"),
+                    rs.getString("nom"),
+                    rs.getInt("mois"),
+                    rs.getInt("jour"),
+                    rs.getInt("annee")
+                ));
+            }
+        }
+    }
+    return joueurs;
+}
 
     public int getPointsDansTournoi() {
         return pointsDansTournoi;

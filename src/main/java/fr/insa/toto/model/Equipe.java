@@ -112,7 +112,38 @@ public static Equipe getEquipeById(int id, Connection con) throws SQLException {
     }
     return null;
 }
+public static List<Joueur> getJoueursDeLEquipe(int idEquipe) throws SQLException {
+    List<Joueur> joueurs = new ArrayList<>();
+    // Jointure entre Joueur et Composition pour trouver les membres de l'équipe
+    String sql = """
+        SELECT j.*
+        FROM Joueur j
+        INNER JOIN Composition c ON j.id = c.idjoueur
+        WHERE c.idequipe = ?
+    """;
 
+    try (Connection con = ConnectionPool.getConnection();
+         PreparedStatement pst = con.prepareStatement(sql)) {
+        pst.setInt(1, idEquipe);
+        try (ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                
+                joueurs.add(new Joueur(
+                    rs.getInt("id"),
+                    rs.getString("surnom"),
+                    StatutSexe.valueOf(rs.getString("sexe")),
+                    rs.getInt("taille"),
+                    rs.getString("prenom"),
+                    rs.getString("nom"),
+                    rs.getInt("mois"),
+                    rs.getInt("jour"),
+                    rs.getInt("annee")
+                ));
+            }
+        }
+    }
+    return joueurs;
+}
 @Override
 protected Statement saveSansId(Connection con) throws SQLException {
     // CORRECTION : Ajout de Statement.RETURN_GENERATED_KEYS

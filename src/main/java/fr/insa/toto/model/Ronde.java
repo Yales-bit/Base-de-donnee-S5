@@ -272,7 +272,7 @@ public void cloturerRondeEtDistribuerPoints() throws Exception {
 
         // 1. Récupérer tous les matchs de la ronde pour traiter les scores
         // On a besoin des objets complets (Equipes, Joueurs) pour attribuer les points
-        List<Match> matchs = Match.getMatchsDeLaRonde(this.getId(),con); // Attention: getMatchsDeLaRonde utilise sa propre connexion, c'est pas optimal mais acceptable ici car hors de la boucle critique.
+        List<Match> matchs = Match.getMatchsDeLaRonde(this.getId(),con); 
 
         for (Match m : matchs) {
             // Sécurité : si un match n'a pas de score (ex: 0-0 par défaut alors qu'ils n'ont pas joué)
