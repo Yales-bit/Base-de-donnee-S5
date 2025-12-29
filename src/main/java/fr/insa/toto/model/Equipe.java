@@ -157,6 +157,34 @@ protected Statement saveSansId(Connection con) throws SQLException {
     pst.executeUpdate();
     return pst;
 }
+public void remplacerJoueurs(Connection con, List<Joueur> nouveauxJoueurs) throws SQLException {
+    if (this.getId() <= 0) {
+        throw new IllegalStateException("Impossible de modifier les joueurs d'une équipe non sauvegardée (ID invalide).");
+    }
+
+    // 1. SUPPRESSION des anciens liens dans la table Composition
+    // On ne supprime pas les joueurs, juste leur lien avec cette équipe.
+    String deleteSql = "DELETE FROM Composition WHERE idequipe = ?";
+    try (PreparedStatement pstDel = con.prepareStatement(deleteSql)) {
+        pstDel.setInt(1, this.getId());
+        pstDel.executeUpdate();
+    }
+
+    // 2. INSERTION des nouveaux liens
+    if (nouveauxJoueurs != null && !nouveauxJoueurs.isEmpty()) {
+        String insertSql = "INSERT INTO Composition (idequipe, idjoueur) VALUES (?, ?)";
+        try (PreparedStatement pstIns = con.prepareStatement(insertSql)) {
+            for (Joueur j : nouveauxJoueurs) {
+                pstIns.setInt(1, this.getId());
+                pstIns.setInt(2, j.getId());
+                // On utilise le batch pour la performance
+                pstIns.addBatch(); 
+            }
+            // On exécute toutes les insertions d'un coup
+            pstIns.executeBatch(); 
+        }
+    }
+}
 
     // Getters and Setters
     public String getNom() {

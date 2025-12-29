@@ -1,10 +1,13 @@
 package fr.insa.toto.webui;
 
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -89,7 +92,22 @@ public class MatchCard extends VerticalLayout {
         equipe1Layout.getElement().getStyle().set("border-right", "1px solid var(--lumo-contrast-20pct)");
 
         dialog.add(compositionsLayout);
-        dialog.getFooter().add(new com.vaadin.flow.component.button.Button("Fermer", e -> dialog.close()));
+        Button closeButton = new Button("Fermer", e -> dialog.close());
+        dialog.getFooter().add(closeButton);
+
+        if (Sessioninfo.adminConnected() && match.getStatut() != StatutMatch.TERMINE) {
+        Button btnModifier = new Button("Modifier les équipes", VaadinIcon.EDIT.create());
+        btnModifier.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        btnModifier.getElement().getStyle().set("margin-left", "auto"); 
+
+        btnModifier.addClickListener(e -> {
+            dialog.close(); //
+            DialogModifierMatch dialogModif = new DialogModifierMatch(this.match);
+            dialogModif.open();
+        });
+        dialog.getFooter().add(btnModifier);
+    }
+        //dialog.getFooter().add(new com.vaadin.flow.component.button.Button("Fermer", e -> dialog.close()));
         dialog.open();
     }
 

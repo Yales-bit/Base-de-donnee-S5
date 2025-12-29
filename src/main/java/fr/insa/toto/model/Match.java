@@ -255,6 +255,39 @@ public void updateStatut(Connection con) throws SQLException {
          pst.executeUpdate();
      }
 }
+public static void updateEquipesDuMatch(Match match, List<Joueur> nouvelleListeA, List<Joueur> nouvelleListeB) throws SQLException {
+    Connection con = null;
+    try {
+        con = ConnectionPool.getConnection();
+        // DÉBUT DE LA TRANSACTION : on désactive l'enregistrement automatique
+        con.setAutoCommit(false); 
+
+        // Mise à jour Equipe 1
+        if (match.getEquipe1() != null) {
+            match.getEquipe1().remplacerJoueurs(con, nouvelleListeA);
+        }
+        // Mise à jour Equipe 2
+        if (match.getEquipe2() != null) {
+            match.getEquipe2().remplacerJoueurs(con, nouvelleListeB);
+        }
+
+        // VALIDATION DE LA TRANSACTION : tout s'est bien passé, on enregistre.
+        con.commit(); 
+    } catch (SQLException e) {
+        if (con != null) {
+            try { 
+                // ANNULATION : Erreur, on annule tout ce qui a été fait dans cette transaction
+                con.rollback(); 
+            } catch (SQLException ex) { /* Ignorer erreur de rollback */ } 
+        }
+        throw e; // On relance l'erreur initiale pour prévenir l'interface
+    } finally {
+        if (con != null) {
+            // On remet la connexion en mode normal avant de la fermer
+            try { con.setAutoCommit(true); con.close(); } catch (SQLException e) {}
+        }
+    }
+}
 
     // Getters et Setters
 
