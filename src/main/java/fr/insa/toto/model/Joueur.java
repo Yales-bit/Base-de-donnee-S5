@@ -605,16 +605,6 @@ public class Joueur extends ClasseMiroir {
         this.annee = annee;
     }
 
-    // test commit Hack
-
-    /**
-     * Récupère l'historique de tous les matchs terminés joués par un joueur.
-     * Cette méthode effectue une requête SQL complexe avec jointures multiples.
-     * 
-     * @param joueurId L'ID du joueur dont on veut l'historique
-     * @return Une liste de LigneHistoriqueDTO représentant chaque match joué
-     * @throws SQLException En cas d'erreur de base de données
-     */
     public static List<LigneHistoriqueDTO> getHistoriqueMatchs(int joueurId) throws SQLException {
         List<LigneHistoriqueDTO> historique = new ArrayList<>();
 
@@ -622,30 +612,39 @@ public class Joueur extends ClasseMiroir {
         // Parcours : Joueur -> Composition -> Equipe -> Matchs -> Ronde -> Tournoi
         // ↓
         // Equipe adverse -> Composition -> Joueur(s) adverses
-        String sql = "SELECT " +
-                "    t.nom AS nomTournoi, " +
-                "    r.numero AS numeroRonde, " +
-                "    eq_joueur.score AS scoreJoueur, " +
-                "    eq_adverse.score AS scoreAdverse, " +
-                "    GROUP_CONCAT(DISTINCT j_adverse.surnom SEPARATOR ', ') AS adversaires " +
-                "FROM Composition c " +
-                "JOIN Equipe eq_joueur ON c.idequipe = eq_joueur.id " +
-                "JOIN Matchs m ON (m.idequipe1 = eq_joueur.id OR m.idequipe2 = eq_joueur.id) " +
-                "JOIN Ronde r ON m.idronde = r.id " +
-                "JOIN Tournoi t ON r.idtournoi = t.id " +
-                "JOIN Equipe eq_adverse ON ( " +
-                "    (m.idequipe1 = eq_adverse.id OR m.idequipe2 = eq_adverse.id) " +
-                "    AND eq_adverse.id != eq_joueur.id " +
-                ") " +
-                "LEFT JOIN Composition c_adverse ON c_adverse.idequipe = eq_adverse.id " +
-                "LEFT JOIN Joueur j_adverse ON c_adverse.idjoueur = j_adverse.id " +
-                "WHERE c.idjoueur = ? " +
-                "  AND m.statut = 'TERMINE' " +
-                "GROUP BY m.id, t.nom, r.numero, eq_joueur.score, eq_adverse.score, t.id " +
-                "ORDER BY t.id DESC, r.numero DESC";
+        String sql = """
+            SELECT 
+                t.nom AS nomTournoi,
+                r.numero AS numeroRonde,
+                eq_joueur.score AS scoreJoueur,
+                eq_adverse.score AS scoreAdverse,
+                GROUP_CONCAT(DISTINCT j_adverse.surnom SEPARATOR ', ') AS adversaires,
+                
+                CASE 
+                    WHEN eq_joueur.score > eq_adverse.score THEN 1
+                    WHEN eq_joueur.score = eq_adverse.score THEN 0
+                    ELSE -1 
+                END AS resultat_numerique
+                
+            FROM Composition c 
+            JOIN Equipe eq_joueur ON c.idequipe = eq_joueur.id 
+            JOIN Matchs m ON (m.idequipe1 = eq_joueur.id OR m.idequipe2 = eq_joueur.id) 
+            JOIN Ronde r ON m.idronde = r.id 
+            JOIN Tournoi t ON r.idtournoi = t.id 
+            JOIN Equipe eq_adverse ON ( 
+                (m.idequipe1 = eq_adverse.id OR m.idequipe2 = eq_adverse.id) 
+                AND eq_adverse.id != eq_joueur.id 
+            ) 
+            LEFT JOIN Composition c_adverse ON c_adverse.idequipe = eq_adverse.id 
+            LEFT JOIN Joueur j_adverse ON c_adverse.idjoueur = j_adverse.id 
+            WHERE c.idjoueur = ? 
+              AND m.statut = 'TERMINE' 
+            GROUP BY m.id, t.nom, r.numero, eq_joueur.score, eq_adverse.score, t.id 
+            ORDER BY t.id DESC, r.numero DESC
+        """;
 
         try (Connection con = ConnectionPool.getConnection();
-                PreparedStatement pst = con.prepareStatement(sql)) {
+             PreparedStatement pst = con.prepareStatement(sql)) {
 
             pst.setInt(1, joueurId);
 
@@ -656,26 +655,23 @@ public class Joueur extends ClasseMiroir {
                     int scoreJoueur = rs.getInt("scoreJoueur");
                     int scoreAdverse = rs.getInt("scoreAdverse");
                     String adversaires = rs.getString("adversaires");
+                    
+                    int resultat = rs.getInt("resultat_numerique");
 
                     // Formatage du score "12 - 10"
                     String score = scoreJoueur + " - " + scoreAdverse;
 
-                    // Déterminer si c'est une victoire
-                    boolean victoire = scoreJoueur > scoreAdverse;
-
-                    // Création du DTO
                     LigneHistoriqueDTO ligne = new LigneHistoriqueDTO(
                             nomTournoi,
                             numeroRonde,
                             adversaires != null ? adversaires : "Inconnu",
                             score,
-                            victoire);
+                            resultat); 
 
                     historique.add(ligne);
                 }
             }
         }
-
         return historique;
     }
 }

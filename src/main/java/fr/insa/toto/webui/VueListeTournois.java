@@ -29,7 +29,14 @@ public class VueListeTournois extends VerticalLayout {
     public VueListeTournois() {
         setAlignItems(Alignment.CENTER);
  
-        add(new H2("Gestion des Tournois"));
+        String titreH2 = "Suivi des Tournois";
+        
+        if (Sessioninfo.adminConnected()) {
+            titreH2 = "Gestion des Tournois"; 
+        }
+        
+        // On crée le H2 avec le titre conditionnel
+        add(new H2(titreH2));
 
 
         btnNouveau.addClickListener(e -> {

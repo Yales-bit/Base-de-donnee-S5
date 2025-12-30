@@ -135,33 +135,62 @@ public class VueProfilJoueur extends VerticalLayout implements HasUrlParameter<I
     }
 
     private void configureGridHistorique() {
+        // NETTOYAGE : On s'assure que la grille est vide avant de la configurer
+        gridHistorique.removeAllColumns();
+
+        // 1. Colonne Tournoi
         gridHistorique.addColumn(LigneHistoriqueDTO::getNomTournoi)
                 .setHeader("Tournoi").setSortable(true).setAutoWidth(true);
-        
+
+        // 2. Colonne Ronde
         gridHistorique.addColumn(LigneHistoriqueDTO::getNumeroRonde)
                 .setHeader("Ronde").setSortable(true).setTextAlign(ColumnTextAlign.CENTER).setWidth("80px").setFlexGrow(0);
-        
-        
+
+        // 3. Colonne Score
         gridHistorique.addColumn(LigneHistoriqueDTO::getScore)
                 .setHeader("Score").setTextAlign(ColumnTextAlign.CENTER).setWidth("100px").setFlexGrow(0);
 
+        // 4. Colonne Résultat (Avec les nouveaux badges pour Victoire/Égalité/Défaite)
         gridHistorique.addComponentColumn(ligne -> {
-            Span resultat = new Span(ligne.isVictoire() ? "Victoire" : "Défaite");
-            resultat.addClassName(ligne.isVictoire() ? LumoUtility.TextColor.SUCCESS : LumoUtility.TextColor.ERROR);
-            resultat.addClassName(LumoUtility.FontWeight.BOLD);
-            resultat.getElement().getStyle().set("padding", "4px 8px");
-            resultat.getElement().getStyle().set("border-radius", "4px");
-            resultat.getElement().getStyle().set("background-color",
-                    ligne.isVictoire() ? "var(--lumo-success-color-10pct)" : "var(--lumo-error-color-10pct)");
-            return resultat;
+            int res = ligne.getResultat();
+            String texte;
+            String couleurFond;
+            String couleurTexte;
+
+            if (res == 1) {
+                texte = "Victoire";
+                couleurTexte = LumoUtility.TextColor.SUCCESS;
+                couleurFond = "var(--lumo-success-color-10pct)";
+            } else if (res == 0) {
+                texte = "Égalité";
+                couleurTexte = LumoUtility.TextColor.PRIMARY; // Bleu/Gris neutre
+                couleurFond = "var(--lumo-primary-color-10pct)";
+            } else {
+                texte = "Défaite";
+                couleurTexte = LumoUtility.TextColor.ERROR;
+                couleurFond = "var(--lumo-error-color-10pct)";
+            }
+
+            Span badge = new Span(texte);
+            badge.addClassName(couleurTexte);
+            badge.addClassName(LumoUtility.FontWeight.BOLD);
+            badge.getElement().getStyle().set("padding", "4px 8px");
+            badge.getElement().getStyle().set("border-radius", "4px");
+            badge.getElement().getStyle().set("background-color", couleurFond);
+            badge.getElement().getStyle().set("display", "inline-block");
+
+            return badge;
+
         }).setHeader("Résultat").setTextAlign(ColumnTextAlign.CENTER).setWidth("120px").setFlexGrow(0);
+
+        // 5. Colonne Adversaires
         gridHistorique.addColumn(LigneHistoriqueDTO::getAdversaires)
                 .setHeader("Adversaire(s)").setAutoWidth(true);
+
+        // Styles généraux
         gridHistorique.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
         gridHistorique.setAllRowsVisible(true);
     }
-
-
     @Override
     public void setParameter(BeforeEvent event, Integer joueurId) {
         try {

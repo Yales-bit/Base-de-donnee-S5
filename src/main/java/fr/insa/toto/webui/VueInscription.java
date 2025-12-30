@@ -16,6 +16,12 @@ import fr.insa.toto.model.Enum_Mois;
 import fr.insa.toto.model.Joueur;
 import fr.insa.toto.model.StatutSexe;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 @Route(value = "inscription", layout = InterfacePrincipale.class)
 @PageTitle("Inscription")
 public class VueInscription extends VerticalLayout {
@@ -24,9 +30,12 @@ public class VueInscription extends VerticalLayout {
     private TextField tfNom = new TextField("Nom");
     private TextField tfPrenom = new TextField("Prenom");
     private TextField tfSurnom = new TextField("Surnom");
-    private NumberField nfJour = new NumberField("Jour de naissance");
-    private ComboBox<Enum_Mois> cbMois = new ComboBox<>("Mois de naissance");
-    private NumberField nfAnnee = new NumberField("Année de naissance");
+
+    // MODIFICATION ICI : Utilisation de ComboBox<Integer> au lieu de NumberField
+    private ComboBox<Integer> cbJour = new ComboBox<>("Jour");
+    private ComboBox<Enum_Mois> cbMois = new ComboBox<>("Mois");
+    private ComboBox<Integer> cbAnnee = new ComboBox<>("Année");
+
     private NumberField nfTaille = new NumberField("Taille (cm)");
     private ComboBox<StatutSexe> cbSexe = new ComboBox<>("Sexe");
 
@@ -35,15 +44,37 @@ public class VueInscription extends VerticalLayout {
         H1 titre = new H1("Inscription");
         add(titre);
 
-        // Configuration des composants
+        // --- CONFIGURATION DES COMBOBOX DATE ---
+
+        // 1. JOURS : Liste de 1 à 31
+        List<Integer> jours = IntStream.rangeClosed(1, 31).boxed().collect(Collectors.toList());
+        cbJour.setItems(jours);
+        cbJour.setPlaceholder("JJ");
+        cbJour.setWidth("80px"); // Taille ajustée pour faire propre
+
+        // 2. MOIS (Configuration existante)
         cbMois.setAllowCustomValue(false);
         cbMois.setItems(Enum_Mois.values());
         cbMois.setItemLabelGenerator(mois -> mois.toString().toUpperCase());
+        cbMois.setPlaceholder("MM");
+        cbMois.setWidth("120px");
 
-        // Configuration des NumberField pour n'accepter que des entiers visuellement (optionnel mais mieux)
-        nfJour.setStep(1);
-        nfAnnee.setStep(1);
+        // 3. ANNÉES : Liste de (Année actuelle - 100 ans) à (Année actuelle)
+        int anneeCourante = LocalDate.now().getYear();
+        List<Integer> annees = new ArrayList<>();
+        // On affiche du plus récent au plus ancien pour que ce soit plus pratique
+        for (int i = anneeCourante; i >= anneeCourante - 100; i--) {
+            annees.add(i);
+        }
+        cbAnnee.setItems(annees);
+        cbAnnee.setPlaceholder("AAAA");
+        cbAnnee.setWidth("100px");
+
+        // ---------------------------------------
+
+        // Configuration des NumberField
         nfTaille.setStep(1);
+        nfTaille.setPlaceholder("Ex: 175");
 
         cbSexe.setAllowCustomValue(false);
         cbSexe.setItems(StatutSexe.values());
@@ -51,8 +82,11 @@ public class VueInscription extends VerticalLayout {
 
         // Layouts
         HorizontalLayout hLayout = new HorizontalLayout(tfNom, tfPrenom, tfSurnom);
-        // Note : j'ai supprimé 'nfMois' qui était déclaré mais inutilisé
-        HorizontalLayout hLayout2 = new HorizontalLayout(nfJour, cbMois, nfAnnee);
+        // Note : j'ai renommé les variables pour que ce soit cohérent (nfJour -> cbJour)
+        HorizontalLayout hLayout2 = new HorizontalLayout(cbJour, cbMois, cbAnnee);
+        // On aligne les champs date sur la ligne de base pour que ce soit joli
+        hLayout2.setAlignItems(Alignment.BASELINE); 
+        
         HorizontalLayout hLayout3 = new HorizontalLayout(nfTaille, cbSexe);
         add(hLayout, hLayout2, hLayout3);
 
@@ -61,57 +95,54 @@ public class VueInscription extends VerticalLayout {
         Button bValider = new Button("Valider");
         bValider.addClickListener(event -> {
             try {
-                // 1. Lectures et validations sécurisées contre les NullPointerException
+                // 1. Lectures et validations
 
-                // Strings : Vérifier si vide ou null
+                // Strings
                 String surnom = tfSurnom.getValue();
                 String nom = tfNom.getValue();
-                if (nom == null || nom.trim().isEmpty()) {
-                    throw new Exception("Veuillez entrer un nom.");
-                }
+                if (nom == null || nom.trim().isEmpty()) { throw new Exception("Veuillez entrer un nom."); }
                 String prenom = tfPrenom.getValue();
-                if (prenom == null || prenom.trim().isEmpty()) {
-                    throw new Exception("Veuillez entrer un prénom.");
-                }
+                if (prenom == null || prenom.trim().isEmpty()) { throw new Exception("Veuillez entrer un prénom."); }
 
-                // Nombres : Utilisation de la méthode utilitaire sécurisée (voir plus bas)
-                int jour = readIntValue(nfJour, "jour de naissance");
-                if (jour < 1 || jour > 31) {
-                    throw new Exception("Le jour de naissance n'est pas valide.");
-                }
+                // --- VALIDATION SIMPLIFIÉE POUR LA DATE (ComboBox) ---
+                Integer jourInt = cbJour.getValue();
+                if (jourInt == null) { throw new Exception("Veuillez sélectionner un jour de naissance."); }
 
-                int annee = readIntValue(nfAnnee, "année de naissance");
-                if (annee < 1900 || annee > 2100) {
-                    throw new Exception("L'année de naissance n'est pas valide.");
-                }
+                Enum_Mois moisEnum = cbMois.getValue();
+                if (moisEnum == null) { throw new Exception("Veuillez sélectionner un mois de naissance."); }
 
+                Integer anneeInt = cbAnnee.getValue();
+                if (anneeInt == null) { throw new Exception("Veuillez sélectionner une année de naissance."); }
+
+                // Validation basique de cohérence (ex: 31 Février)
+                try {
+                    LocalDate.of(anneeInt, moisEnum.getNumero(), jourInt);
+                } catch (Exception e) {
+                    throw new Exception("La date de naissance saisie n'est pas valide (ex: 31 Février).");
+                }
+                // ----------------------------------------------------
+
+                // Taille (toujours un NumberField)
                 int taille = readIntValue(nfTaille, "taille");
                 if (taille < 50 || taille > 250) {
-                    throw new Exception("La taille n'est pas valide.");
+                    throw new Exception("La taille n'est pas valide (doit être entre 50 et 250 cm).");
                 }
 
-                // ComboBox Mois : Vérification du null avant d'appeler une méthode
-                Enum_Mois moisEnum = cbMois.getValue();
-                if (moisEnum == null) {
-                    throw new Exception("Veuillez sélectionner un mois de naissance.");
-                }
-                int mois = moisEnum.getNumero(); // Maintenant c'est sûr
-
-                // ComboBox Sexe : Vérification du null (C'était déjà correct dans ton code !)
+                // Sexe
                 StatutSexe sexe = cbSexe.getValue();
                 if (sexe == null) {
                     throw new Exception("Veuillez sélectionner un sexe.");
                 }
 
-                // 2. Création du joueur si tout est bon
-                Joueur j = new Joueur(surnom, sexe, taille, nom, prenom, mois, jour, annee);
+                // 2. Création du joueur
+                Joueur j = new Joueur(surnom, sexe, taille, nom, prenom, moisEnum.getNumero(), jourInt, anneeInt);
                 Joueur.creerJoueur(j);
 
                 Notification.show("Joueur créé avec succès : " + prenom + " " + nom)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
                 clearForm();
-                
+
                 // Bouton pour aller s'inscrire à un tournoi
                 Button btnVoirTournois = new Button("S'inscrire à un tournoi maintenant",
                         ev -> getUI().ifPresent(ui -> ui.navigate("tournois")));
@@ -119,10 +150,8 @@ public class VueInscription extends VerticalLayout {
                 add(btnVoirTournois);
 
             } catch (Exception e) {
-                // Affiche le message de l'exception (soit les nôtres, soit une erreur BDD)
                 Notification.show("Erreur : " + e.getMessage())
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                // e.printStackTrace(); // Optionnel : utile pour le débogage console
             }
         });
 
@@ -144,14 +173,14 @@ public class VueInscription extends VerticalLayout {
         cbSexe.clear();
         tfNom.clear();
         tfPrenom.clear();
-        nfJour.clear();
+        // MODIFICATION ICI AUSSI
+        cbJour.clear();
         cbMois.clear();
-        nfAnnee.clear();
+        cbAnnee.clear();
     }
 
     /**
-     * Lit la valeur d'un NumberField de manière sécurisée.
-     * Jette une exception explicite si le champ est vide au lieu de faire un NullPointerException.
+     * Lit la valeur d'un NumberField de manière sécurisée (utilisé uniquement pour la taille maintenant).
      */
     private int readIntValue(NumberField field, String fieldName) throws Exception {
         Double value = field.getValue();
