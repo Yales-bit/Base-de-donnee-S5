@@ -1,0 +1,72 @@
+/* =========================================
+   OPTION 1 : STYLE "PRO & MODERNE"
+   ========================================= */
+
+/* Import d'une police système propre (optionnel, Vaadin le fait déjà un peu) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+html {
+    /* Surcharge des variables globales LUMO */
+
+    /* --- Typographie --- */
+    /* On force une police très lisible et moderne */
+    --lumo-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+    /* --- Couleurs --- */
+    /* Un bleu plus "serieux" et moins agressif que le bleu par défaut */
+    --lumo-primary-color-h: 215;
+    --lumo-primary-color-s: 55%;
+    --lumo-primary-color-l: 45%;
+    /* --lumo-primary-color va être calculé automatiquement à partir des HSL ci-dessus */
+
+    /* Couleur de fond de base : Blanc pur */
+    --lumo-base-color: #ffffff;
+    /* Couleur des surfaces secondaires (ex: barres latérales) : Gris très clair */
+    --lumo-contrast-5pct: #f8f9fa;
+
+    /* Texte : Gris foncé, jamais noir pur pour la douceur */
+    --lumo-body-text-color: #2c3e50;
+    --lumo-header-text-color: #1a252f;
+
+    /* --- Formes --- */
+    /* Arrondis modérés pour un look net */
+    --lumo-border-radius-s: 4px;
+    --lumo-border-radius-m: 6px;
+    --lumo-border-radius-l: 8px;
+
+    /* Ombres plus nettes et définies */
+    --lumo-box-shadow-s: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    --lumo-box-shadow-m: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* --- Ajustements spécifiques des éléments HTML --- */
+
+/* Titres plus marqués */
+h1, h2, h3 {
+    letter-spacing: -0.02em; /* Resserre légèrement les lettres pour un look moderne */
+    font-weight: 700 !important;
+}
+
+/* La barre de navigation (AppLayout) */
+vaadin-app-layout::part(navbar) {
+    /* On force un fond blanc et une bordure subtile en bas au lieu d'un fond sombre */
+    background-color: var(--lumo-base-color) !important;
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+    box-shadow: none !important; /* On enlève l'ombre par défaut */
+}
+
+/* Les titres dans la navbar (doivent redevenir foncés si le fond est blanc) */
+vaadin-app-layout::part(navbar) h1 {
+    color: var(--lumo-header-text-color) !important;
+}
+vaadin-app-layout::part(navbar) vaadin-drawer-toggle {
+     color: var(--lumo-body-text-color) !important;
+}
+
+/* Les boutons primaires */
+vaadin-button[theme~="primary"] {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+}

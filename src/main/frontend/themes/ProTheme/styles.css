@@ -1,0 +1,71 @@
+/* =========================================
+   OPTION 2 : STYLE "DYNAMIQUE & ACCUEILLANT"
+   ========================================= */
+
+/* Import d'une police plus ronde et sympa */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
+
+html {
+    /* Surcharge des variables globales LUMO */
+
+    /* --- Typographie --- */
+    --lumo-font-family: 'Poppins', sans-serif;
+
+    /* --- Couleurs --- */
+    /* Un "Teal" (Bleu-Vert) dynamique et frais */
+    --lumo-primary-color-h: 175;
+    --lumo-primary-color-s: 75%;
+    --lumo-primary-color-l: 40%;
+
+    /* Le rouge d'erreur un peu plus doux */
+    --lumo-error-color-h: 350;
+    --lumo-error-color-s: 80%;
+
+    /* Couleur de fond de base : Légèrement cassé, plus chaud */
+    --lumo-base-color: #fafafa;
+    /* Couleur des surfaces secondaires : Beige très clair */
+    --lumo-contrast-5pct: #f2f0eb;
+
+    /* Texte : Gris chaud */
+    --lumo-body-text-color: #4a4a4a;
+    --lumo-header-text-color: #222222;
+
+    /* --- Formes --- */
+    /* Très arrondi pour un côté convivial ("bubbly") */
+    --lumo-border-radius-s: 8px;
+    --lumo-border-radius-m: 12px;
+    --lumo-border-radius-l: 16px;
+
+    /* Ombres très douces et étalées */
+    --lumo-box-shadow-s: 0 2px 8px rgba(0,0,0,0.08);
+    --lumo-box-shadow-m: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+/* --- Ajustements spécifiques des éléments HTML --- */
+
+h1, h2, h3 {
+    /* Titres plus "amicaux" */
+    font-weight: 700 !important;
+    color: var(--lumo-primary-color) !important; /* Les titres prennent la couleur primaire */
+}
+
+/* Cartes et conteneurs (comme dans le profil) */
+.card, [class*="LumoUtility.Background.BASE"], [class*="LumoUtility.BoxShadow"]  {
+    border: none !important;
+    /* Petite animation au survol pour le dynamisme */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Effet de "lift" au survol des zones blanches */
+div[class*="lumo-base-color"]:hover {
+     transform: translateY(-3px);
+     box-shadow: var(--lumo-box-shadow-m) !important;
+}
+
+/* Les boutons */
+vaadin-button {
+    /* Boutons plus gros et plus ronds */
+    height: var(--lumo-size-l);
+    padding: 0 var(--lumo-space-l);
+    font-weight: 500;
+}
