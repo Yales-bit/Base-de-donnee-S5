@@ -1,75 +1,130 @@
 package fr.insa.toto.webui;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import fr.insa.toto.webui.Session.Login;
 import fr.insa.toto.webui.Session.Logout;
 import fr.insa.toto.webui.Session.Sessioninfo;
+import com.vaadin.flow.component.avatar.AvatarVariant;
 
 @Route("")
 public class InterfacePrincipale extends AppLayout {
 
     public InterfacePrincipale() {
-        // 1. Le Menu Latéral (Drawer)
+        // 1. Configuration du Menu Latéral (Drawer)
+        // On suppose que la classe 'Menu' est définie ailleurs et fonctionne.
         this.addToDrawer(new Menu());
-/*<<<<<<< HEAD
-       // this.addToDrawer(new Button("Classement"));
-        //this.addToDrawer(new Button("Participants"));
-        //this.addToDrawer(new Button("Ronde"));
-        //this.addToDrawer(new Button("Règle"));
-        
-        
-        VerticalLayout menu = new VerticalLayout();
-        
-        //menu.add(new RouterLink("Tournoi", VueDetailsTournoi.class)); 
-        menu.add(new RouterLink("Classement", VueRanking.class));
-        menu.add(new RouterLink("Inscription", VueInscription.class));// 
-=======
->>>>>>> origin/master+*/
 
-        // 2. La Barre de Navigation Supérieure (Navbar)
+        // 2. Configuration de la Barre de Navigation Supérieure (Navbar)
+        this.addToNavbar(createHeaderContent());
+    }
+
+    private Component createHeaderContent() {
+        HorizontalLayout header = new HorizontalLayout();
+        header.setId("header");
+        header.setWidthFull();
+        header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        header.setSpacing(false);
+        header.addClassNames(
+                LumoUtility.Background.TRANSPARENT, // 
+                LumoUtility.TextColor.PRIMARY_CONTRAST, // Texte blanc pour contraster
+                LumoUtility.Padding.Horizontal.MEDIUM,
+                LumoUtility.Padding.Vertical.SMALL,
+                LumoUtility.BoxShadow.SMALL
+        );
+
+        // --- Partie Gauche : Toggle + Titre ---
         DrawerToggle toggle = new DrawerToggle();
-        H2 title = new H2("Gestion Tournois");
-        title.getStyle().set("font-size", "var(--lumo-font-size-l)").set("margin", "0");
+        toggle.addClassName(LumoUtility.TextColor.PRIMARY_CONTRAST);
 
-        // Zone de droite pour le login/logout
-        HorizontalLayout headerRight = new HorizontalLayout();
-        headerRight.getStyle().set("margin-left", "auto").set("margin-right", "1em");
+        // Icône décorative
+        VaadinIcon.TROPHY.create();
+        Span titleIcon = new Span(VaadinIcon.TROPHY.create());
+        titleIcon.addClassName(LumoUtility.Margin.Right.SMALL);
+
+        H1 title = new H1("Gestion Tournois");
+        // H1 pour la sémantique, mais stylisé plus petit pour rentrer dans le header
+        title.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE, LumoUtility.FontWeight.BOLD);
+
+        HorizontalLayout leftSection = new HorizontalLayout(toggle, titleIcon, title);
+        leftSection.setAlignItems(FlexComponent.Alignment.CENTER);
+
+
+        // --- Partie Droite : Authentification ---
+        Component authSection = createAuthSection();
+        // Pousse la section de droite au bout
+        authSection.addClassName(LumoUtility.Margin.Left.AUTO);
+
+        header.add(leftSection, authSection);
+        return header;
+    }
+
+    private Component createAuthSection() {
+        HorizontalLayout authLayout = new HorizontalLayout();
+        authLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        authLayout.setSpacing(true);
 
         if (Sessioninfo.userConnected()) {
-            // Si connecté : Bouton de déconnexion
-            headerRight.add(new Logout());
+            // --- Cas : Utilisateur Connecté ---
+            // Ajout d'un petit avatar pour matérialiser la connexion
+            Avatar avatar = new Avatar(Sessioninfo.curUser().map(u -> u.getIdentifiant()).orElse("User"));
+            avatar.addThemeVariants(AvatarVariant.LUMO_XSMALL);
+            avatar.getElement().getStyle().set("background-color", "rgba(255,255,255, 0.2)"); // Avatar légèrement transparent sur fond foncé
+
+            Logout logoutBtn = new Logout();
+            // On s'assure que le bouton de déconnexion est visible sur le fond sombre
+            if(logoutBtn.getChildren().findFirst().isPresent() && logoutBtn.getChildren().findFirst().get() instanceof Button) {
+                 Button btn = (Button) logoutBtn.getChildren().findFirst().get();
+                 btn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
+            }
+
+            authLayout.add(avatar, logoutBtn);
+
         } else {
-            // Si pas connecté : Formulaire de login
-           
+            // --- Cas : Utilisateur Non Connecté ---
+            Button loginBtn = new Button("Se connecter", VaadinIcon.SIGN_IN.create());
+            // Bouton blanc pour ressortir sur le fond primaire
+            loginBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST, ButtonVariant.LUMO_PRIMARY);
 
-            Button compteBtn = new Button("Compte", VaadinIcon.USER.create());
+            // Au clic, on ouvre une boîte de dialogue modale plutôt que de casser le header
+            loginBtn.addClickListener(e -> openLoginDialog());
 
-            Login login = new Login();
-            login.setVisible(false);
-
-            compteBtn.addClickListener(e -> {
-            login.setVisible(!login.isVisible());
-            compteBtn.setVisible(false);
-    });
-
-    headerRight.add(compteBtn, login); 
-          //  headerRight.add(new Login());
+            authLayout.add(loginBtn);
         }
 
-        // Assemblage de la navbar
-        HorizontalLayout header = new HorizontalLayout(toggle, title, headerRight);
-        header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        header.setWidthFull();
-        header.addClassNames("py-0", "px-m");
+        return authLayout;
+    }
 
-        this.addToNavbar(header);
+    /**
+     * Ouvre une fenêtre modale propre contenant le formulaire de login.
+     */
+    private void openLoginDialog() {
+        Dialog loginDialog = new Dialog();
+        loginDialog.setHeaderTitle("Connexion");
+
+        Login loginForm = new Login();
+        // Le formulaire Login doit idéalement gérer la fermeture du dialog en cas de succès,
+        // ou on peut ajouter un listener ici si Login lance un événement.
+        // Pour l'instant, on l'ajoute simplement.
+
+        loginDialog.add(loginForm);
+        loginDialog.setDraggable(true);
+        loginDialog.setModal(true);
+        loginDialog.setCloseOnEsc(true);
+        loginDialog.setCloseOnOutsideClick(true);
+
+        loginDialog.open();
     }
 }

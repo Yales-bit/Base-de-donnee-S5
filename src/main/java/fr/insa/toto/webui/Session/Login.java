@@ -18,6 +18,7 @@ along with CoursBeuvron.  If not, see <http://www.gnu.org/licenses/>.
  */
 package fr.insa.toto.webui.Session;
 
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.notification.Notification;
@@ -45,8 +46,8 @@ public class Login extends HorizontalLayout {
     this.mdp = new PasswordField("Mot de Passe");
     this.login.addClickListener((t)->{
     this.doLogin();        
-       
-    });
+       });
+    this.login.addClickShortcut(Key.ENTER);
     this.add(this.identifiant,this.mdp,this.login);
   
 }
