@@ -397,100 +397,106 @@ public boolean estNombreJoueursSuffisant() throws SQLException {
 
 
 private void genererMatchsPourRonde(Ronde ronde) throws Exception {
-    
-    /*List<Joueur> tousInscrits = this.getJoueursInscrits();
-    List<Joueur> prioritaires = Ronde.getJoueursPrioritaires(this.getId(), ronde.getNumero()-1);
-    
-    // Liste des joueurs "normaux" (Inscrits - Prioritaires)
-    List<Joueur> normaux = new ArrayList<>(tousInscrits);
-
-    for (Joueur prioritaire : prioritaires) {
-    // On supprime de la liste 'normaux' tout joueur ayant le même ID que le prioritaire
-    normaux.removeIf(normal -> normal.getId() == prioritaire.getId());*/
-    List<Joueur> tousInscrits = this.getJoueursInscrits();
-    List<Joueur> prioritaires = Ronde.getJoueursPrioritaires(this.getId(), ronde.getNumero()-1);
-    // Liste des joueurs "normaux" (Inscrits - Prioritaires)
-    List<Joueur> normaux = new ArrayList<>(tousInscrits);
-
-
-
-    //normaux.removeAll(prioritaires);
-    for (Joueur prioritaire : prioritaires) {
-        // On retire de la liste 'normaux' tout joueur dont l'ID est le même que celui du prioritaire
-        normaux.removeIf(joueurNormal -> joueurNormal.getId() == prioritaire.getId());
-    }
-
-    // Mélange aléatoire des deux groupes séparément
-    Collections.shuffle(prioritaires);
-    Collections.shuffle(normaux);
-    
-    List<Joueur> poolDeTirage = new ArrayList<>();// Création de la liste de tirage finale (Prioritaires EN PREMIER)
-    poolDeTirage.addAll(prioritaires);
-    poolDeTirage.addAll(normaux);
-
-    int nbJoueursParEquipe = this.getNbrJoueursParEquipe();
-    int nbJoueursParMatch = nbJoueursParEquipe * 2;
-    
-    if (poolDeTirage.size() < nbJoueursParMatch) {
-        throw new Exception("Pas assez de joueurs disponibles ("+poolDeTirage.size()+") pour générer ne serait-ce qu'un match ("+nbJoueursParMatch+" requis).");
-    }
-
-    // Liste pour mémoriser ceux qui VONT jouer dans cette ronde
-    List<Joueur> participantsDeCetteRonde = new ArrayList<>();
-
-    Connection con = null;
-    try {
-        con = ConnectionPool.getConnection();
-        con.setAutoCommit(false); // Transaction
-
-        int compteurMatch = 1;
-        for (int i = 0; i <= poolDeTirage.size() - nbJoueursParMatch; i += nbJoueursParMatch) {
-
-            List<Joueur> groupe1 = poolDeTirage.subList(i, i + nbJoueursParEquipe);
-            List<Joueur> groupe2 = poolDeTirage.subList(i + nbJoueursParEquipe, i + nbJoueursParMatch);
-
-            // On ajoute ces joueurs à la liste des participants confirmés
-            participantsDeCetteRonde.addAll(groupe1);
-            participantsDeCetteRonde.addAll(groupe2);
-
-            // Création Equipes et Match en base 
-            String nomEq1 = "T" + this.getId() + "-R" + ronde.getNumero() + "-M" + compteurMatch + "-A";
-            Equipe eq1 = new Equipe(nomEq1, ronde.getId());
-            eq1.saveInDB(con);
-            eq1.ajouterJoueurs(con, groupe1);
-
-            String nomEq2 = "T" + this.getId() + "-R" + ronde.getNumero() + "-M" + compteurMatch + "-B";
-            Equipe eq2 = new Equipe(nomEq2, ronde.getId());
-            eq2.saveInDB(con);
-            eq2.ajouterJoueurs(con, groupe2);
-
-            Match m = new Match(ronde, eq1, eq2);
-            m.saveInDB(con);
-            compteurMatch++;
+        List<Joueur> tousInscrits = this.getJoueursInscrits();
+        
+        // Si c'est la ronde 1, numeroRonde-1 = 0, ce qui est géré par getJoueursPrioritaires
+        List<Joueur> prioritaires = Ronde.getJoueursPrioritaires(this.getId(), ronde.getNumero());
+        
+        List<Joueur> normaux = new ArrayList<>(tousInscrits);
+        // On retire de la liste 'normaux' ceux qui sont prioritaires
+        for (Joueur prioritaire : prioritaires) {
+            normaux.removeIf(joueurNormal -> joueurNormal.getId() == prioritaire.getId());
         }
 
-        // enregistre qui a joué pour la prochaine fois
-        ronde.enregistrerParticipants(con, participantsDeCetteRonde);
+        // Mélange aléatoire des deux groupes séparément
+        Collections.shuffle(prioritaires);
+        Collections.shuffle(normaux);
+        
+        List<Joueur> poolDeTirage = new ArrayList<>();
+        // Les prioritaires EN PREMIER
+        poolDeTirage.addAll(prioritaires);
+        poolDeTirage.addAll(normaux);
 
-        con.commit(); // Validation
-        System.out.println((compteurMatch - 1) + " matchs générés pour ronde " + ronde.getNumero() + ". " + participantsDeCetteRonde.size() + " joueurs participants.");
-
-        // Petit log pour vérifier le système de priorité
-        if (!prioritaires.isEmpty()) {
-             System.out.println("Info priorité : " + prioritaires.size() + " joueurs étaient prioritaires et ont été placés en tête de liste.");
+        int totalJoueursDispo = poolDeTirage.size();
+        int nbJoueursParEquipe = this.getNbrJoueursParEquipe();
+        int nbJoueursParMatch = nbJoueursParEquipe * 2;
+        
+        // Vérification minimale : peut-on faire au moins UN match ?
+        if (totalJoueursDispo < nbJoueursParMatch) {
+            // Cas critique : pas assez de monde. On ne peut rien générer.
+            // Selon les règles, soit on annule la ronde, soit on bloque le processus.
+            // Ici, on bloque.
+            throw new Exception("Pas assez de joueurs disponibles (" + totalJoueursDispo + ") pour générer ne serait-ce qu'un match (" + nbJoueursParMatch + " requis).");
         }
-        int laissesPourCompte = poolDeTirage.size() - participantsDeCetteRonde.size();
-        if (laissesPourCompte > 0) {
-             System.out.println("Info : " + laissesPourCompte + " joueurs n'ont pas pu être placés dans cette ronde et seront prioritaires à la prochaine.");
-        }
 
-    } catch (Exception e) {
-        if (con != null) try { con.rollback(); } catch (SQLException ex) {}
-        throw new Exception("Erreur génération matchs ronde " + ronde.getNumero(), e);
-    } finally {
-        if (con != null) { con.setAutoCommit(true); con.close(); }
+        // --- NOUVELLE LOGIQUE : LIMITATION PAR LES TERRAINS ---
+        
+        // 1. Combien de matchs MAXIMUM peut-on faire avec les joueurs disponibles ?
+        int maxMatchsParJoueurs = totalJoueursDispo / nbJoueursParMatch;
+        
+        // 2. Combien de terrains avons-nous ?
+        int nbrTerrainsDispo = this.getNbrTerrains();
+        
+        // 3. Le nombre RÉEL de matchs est le plus petit des deux
+        int nombreMatchsAGenerer = Math.min(maxMatchsParJoueurs, nbrTerrainsDispo);
+        
+        System.out.println("Info Ronde " + ronde.getNumero() + " : " + totalJoueursDispo + " joueurs, " 
+                + nbrTerrainsDispo + " terrains -> Génération de " + nombreMatchsAGenerer + " matchs.");
+
+        // Liste pour mémoriser ceux qui VONT jouer dans cette ronde
+        List<Joueur> participantsDeCetteRonde = new ArrayList<>();
+
+        Connection con = null;
+        try {
+            con = ConnectionPool.getConnection();
+            con.setAutoCommit(false); // Transaction
+
+            // On boucle exactement le nombre de fois calculé
+            for (int i = 0; i < nombreMatchsAGenerer; i++) {
+                List<Joueur> equipeA = new ArrayList<>();
+                List<Joueur> equipeB = new ArrayList<>();
+
+                // On "pioche" les joueurs en tête de liste et on les retire du pool
+                for (int k = 0; k < nbJoueursParEquipe; k++) equipeA.add(poolDeTirage.remove(0));
+                for (int k = 0; k < nbJoueursParEquipe; k++) equipeB.add(poolDeTirage.remove(0));
+
+                // On ajoute ces joueurs à la liste des participants confirmés
+                participantsDeCetteRonde.addAll(equipeA);
+                participantsDeCetteRonde.addAll(equipeB);
+
+                // Création Equipes et Match en base (ton code existant)
+                String nomEq1 = "T" + this.getId() + "-R" + ronde.getNumero() + "-M" + (i + 1) + "-A";
+                Equipe eq1 = new Equipe(nomEq1, ronde.getId());
+                eq1.saveInDB(con);
+                eq1.ajouterJoueurs(con, equipeA);
+
+                String nomEq2 = "T" + this.getId() + "-R" + ronde.getNumero() + "-M" + (i + 1) + "-B";
+                Equipe eq2 = new Equipe(nomEq2, ronde.getId());
+                eq2.saveInDB(con);
+                eq2.ajouterJoueurs(con, equipeB);
+
+                Match m = new Match(ronde, eq1, eq2);
+                m.saveInDB(con);
+            }
+
+            // --- MISE A JOUR DES PARTICIPANTS (Nouvelle méthode transactionnelle) ---
+            // On utilise la méthode statique de Ronde qu'on a créée à l'étape précédente.
+            // Elle supprime les anciens (si besoin) et insère les nouveaux dans la même transaction.
+            Ronde.updateParticipantsDeLaRonde(ronde.getId(), participantsDeCetteRonde, con);
+
+            con.commit(); // Validation de tout le bloc
+            
+            int nbExempts = poolDeTirage.size(); // Ceux qui restent dans la liste initiale
+            System.out.println(nombreMatchsAGenerer + " matchs générés pour ronde " + ronde.getNumero() + ". " 
+                    + participantsDeCetteRonde.size() + " joueurs participants. " + nbExempts + " exemptés.");
+
+        } catch (Exception e) {
+            if (con != null) try { con.rollback(); } catch (SQLException ex) {}
+            throw new Exception("Erreur génération matchs ronde " + ronde.getNumero(), e);
+        } finally {
+            if (con != null) { con.setAutoCommit(true); con.close(); }
+        }
     }
-}
 
 
 public void lancerTournoi() throws Exception {

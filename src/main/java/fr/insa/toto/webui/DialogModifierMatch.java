@@ -15,6 +15,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import fr.insa.toto.model.Equipe;
 import fr.insa.toto.model.Joueur;
 import fr.insa.toto.model.Match;
+import fr.insa.toto.model.Ronde;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -124,21 +125,33 @@ public class DialogModifierMatch extends Dialog {
     }
 
 
-    private void initialiserWidgets() {
+private void initialiserWidgets() {
         try {
+            // 1. On charge les joueurs du match courant pour l'affichage des colonnes A et B
             List<Joueur> joueursA = Equipe.getJoueursDeLEquipe(match.getEquipe1().getId());
             List<Joueur> joueursB = Equipe.getJoueursDeLEquipe(match.getEquipe2().getId());
-            List<Integer> idsInTeams = new ArrayList<>();
-            joueursA.forEach(j -> idsInTeams.add(j.getId()));
-            joueursB.forEach(j -> idsInTeams.add(j.getId()));
 
-            // NOTE : Assurez-vous que cette méthode existe dans votre modèle Joueur
-            List<Joueur> tousLesJoueursDuTournoi = Joueur.getJoueursInscritsComplets(this.tournoiId);
+            // 2. On charge TOUS les joueurs inscrits au tournoi (la base de référence)
+            // J'utilise le nom exact de la méthode que tu as mentionné :
+            List<Joueur> tousInscrits = Joueur.getJoueursInscritsComplets(this.tournoiId);
 
-            List<Joueur> joueursExempts = tousLesJoueursDuTournoi.stream()
-                    .filter(j -> !idsInTeams.contains(j.getId()))
-                    .collect(Collectors.toList());
+            // 3. --- LE POINT CRUCIAL CORRIGÉ ---
+            // On récupère les IDs de TOUS ceux qui jouent dans cette ronde (dans ce match OU dans les autres matchs simultanés).
+            int idRondeActuelle = match.getRonde().getId();
+            // Appel à la nouvelle méthode backend créée à l'étape 1
+            List<Integer> idsParticipantsRonde = Ronde.getIdsJoueursParticipants(idRondeActuelle);
 
+            // 4. Filtrage pour trouver les VRAIS exemptés
+            List<Joueur> joueursExempts = new ArrayList<>();
+            for (Joueur j : tousInscrits) {
+                // Un joueur est exempt s'il est inscrit au tournoi MAIS que son ID
+                // n'est pas dans la liste des participants officiels de la ronde.
+                if (!idsParticipantsRonde.contains(j.getId())) {
+                    joueursExempts.add(j);
+                }
+            }
+
+            // 5. Remplissage des colonnes graphiques
             for (Joueur j : joueursA) addWidgetToZone(new JoueurWidget(j), Zone.EQUIPE_A);
             for (Joueur j : joueursB) addWidgetToZone(new JoueurWidget(j), Zone.EQUIPE_B);
             for (Joueur j : joueursExempts) addWidgetToZone(new JoueurWidget(j), Zone.EXEMPT);
@@ -147,6 +160,7 @@ public class DialogModifierMatch extends Dialog {
 
         } catch (SQLException e) {
             Notification.show("Erreur de chargement : " + e.getMessage()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+            // e.printStackTrace(); // Utile pour le debug
             close();
         }
     }

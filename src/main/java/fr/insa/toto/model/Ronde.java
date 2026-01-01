@@ -357,6 +357,21 @@ public static void updateParticipantsDeLaRonde(int rondeId, List<Joueur> tousLes
         }
     }
 }
+public static List<Integer> getIdsJoueursParticipants(int idRonde) throws SQLException {
+    List<Integer> ids = new ArrayList<>();
+    String sql = "SELECT idjoueur FROM ParticipationRonde WHERE idronde = ?";
+
+    try (Connection con = ConnectionPool.getConnection();
+         PreparedStatement pst = con.prepareStatement(sql)) {
+        pst.setInt(1, idRonde);
+        try (ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                ids.add(rs.getInt("idjoueur"));
+            }
+        }
+    }
+    return ids;
+}
 
     // Getters et Setters
 
