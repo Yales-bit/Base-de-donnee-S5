@@ -5,7 +5,6 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -23,73 +22,105 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Fenêtre pop-up dédiée à la modification (swap) rapide des joueurs.
- * Version optimisée par déplacement de composants graphiques.
+ * Fenêtre pop-up pour la modification rapide des équipes avec gestion des exemptés (3 colonnes).
  */
 public class DialogModifierMatch extends Dialog {
 
+    private enum Zone { EQUIPE_A, EXEMPT, EQUIPE_B }
+
     private Match match;
+    private int tournoiId;
 
-    // Conteneurs graphiques (les colonnes visuelles)
-    private VerticalLayout containerA = new VerticalLayout();
-    private VerticalLayout containerB = new VerticalLayout();
+    // Conteneurs graphiques (les zones défilables)
+    private VerticalLayout scrollAreaA;
+    private VerticalLayout scrollAreaExempt;
+    private VerticalLayout scrollAreaB;
 
-    // Listes pour garder une référence Java vers nos widgets (pour savoir qui est où)
+    // --- RÉFÉRENCE QUI VOUS MANQUAIT PEUT-ÊTRE ---
+    private H4 titleExempt;
+
+    // Listes Java pour suivre où sont les widgets
     private List<JoueurWidget> widgetsA = new ArrayList<>();
+    private List<JoueurWidget> widgetsExempt = new ArrayList<>();
     private List<JoueurWidget> widgetsB = new ArrayList<>();
 
-    private Button btnSauvegarder = new Button("Valider les nouvelles équipes", VaadinIcon.CHECK.create());
+    private Button btnSauvegarder = new Button("Valider les équipes", VaadinIcon.CHECK.create());
     private Span validationMessage = new Span();
 
     public DialogModifierMatch(Match match) {
         this.match = match;
-        setHeaderTitle("Modifier la composition (Swap rapide)");
-        setWidth("900px");
-        setHeight("650px");
+        // On suppose que les getters ne sont pas null.
+        this.tournoiId = match.getRonde().getIdtournoi();
 
-        // 1. Configuration de l'interface principale
+        setHeaderTitle("Modifier la composition (Swap 3 zones)");
+        setWidth("1100px");
+        setHeight("700px");
+
+        // 1. Interface principale (3 colonnes)
         HorizontalLayout mainLayout = new HorizontalLayout();
         mainLayout.setSizeFull();
         mainLayout.setSpacing(true);
-        mainLayout.setAlignItems(FlexComponent.Alignment.START);
+        mainLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
 
-        // Configuration des colonnes visuelles
-        configureContainer(containerA, match.getEquipe1().getNom());
-        configureContainer(containerB, match.getEquipe2().getNom());
+        // Création des 3 colonnes structurées
+        VerticalLayout colA = createColumnStructure("Equipe A : " + match.getEquipe1().getNom(), LumoUtility.Background.CONTRAST_5);
+        scrollAreaA = extractScrollArea(colA);
 
-        mainLayout.add(containerA, containerB);
-        mainLayout.setFlexGrow(1, containerA);
-        mainLayout.setFlexGrow(1, containerB);
+        // Colonne centrale
+        VerticalLayout colExempt = createColumnStructure("Exemptés", LumoUtility.Background.CONTRAST_10);
+        scrollAreaExempt = extractScrollArea(colExempt);
+        // --- INITIALISATION DE LA RÉFÉRENCE ---
+        this.titleExempt = (H4) colExempt.getChildren().findFirst().get();
+
+        // Colonne droite
+        VerticalLayout colB = createColumnStructure("Equipe B : " + match.getEquipe2().getNom(), LumoUtility.Background.CONTRAST_5);
+        scrollAreaB = extractScrollArea(colB);
+
+        mainLayout.add(colA, colExempt, colB);
+        // Répartition de l'espace : 40% - 20% - 40%
+        mainLayout.setFlexGrow(2, colA);
+        mainLayout.setFlexGrow(1, colExempt);
+        mainLayout.setFlexGrow(2, colB);
+
         add(mainLayout);
 
-        // 2. Chargement des données initiales et création des widgets
+        // 2. Chargement et répartition des joueurs
         initialiserWidgets();
 
-        // 3. Configuration du pied de page
+        // 3. Pied de page
         configureFooter();
-
-        // 4. Première validation
         updateValidationState();
     }
 
-    private void configureContainer(VerticalLayout container, String nomEquipe) {
-        container.setPadding(false);
-        container.setSpacing(false); // On gérera l'espacement dans le widget
-        container.setHeightFull();
-        container.add(new H4("Equipe : " + nomEquipe));
-        // Zone défilable pour les joueurs
+    /**
+     * Crée la structure visuelle d'une colonne (Titre + Zone de scroll).
+     */
+    private VerticalLayout createColumnStructure(String title, String bgColorUtility) {
+        VerticalLayout col = new VerticalLayout();
+        col.setPadding(false);
+        col.setSpacing(false);
+        col.setHeightFull();
+        // Le premier enfant est le titre H4
+        col.add(new H4(title));
+
         VerticalLayout scrollArea = new VerticalLayout();
         scrollArea.setPadding(true);
         scrollArea.setSpacing(true);
         scrollArea.getElement().getStyle().set("overflow-y", "auto");
-        scrollArea.getElement().getStyle().set("flex-grow", "1"); // Prend tout l'espace restant
-        scrollArea.getElement().getStyle().set("background-color", "var(--lumo-contrast-5pct)");
+        scrollArea.addClassName(bgColorUtility);
         scrollArea.getElement().getStyle().set("border-radius", "var(--lumo-border-radius-m)");
-        container.add(scrollArea);
-        // C'est dans cette zone qu'on ajoutera les widgets, pas directement dans le container principal
-        // On triche un peu pour que containerA pointe vers la zone de scroll
-        if (container == containerA) containerA = scrollArea;
-        else containerB = scrollArea;
+        // Le deuxième enfant est la zone de scroll
+        col.add(scrollArea);
+        col.setFlexGrow(1, scrollArea);
+        return col;
+    }
+
+    /**
+     * Helper pour récupérer proprement la zone de scroll d'une colonne structurée.
+     */
+    private VerticalLayout extractScrollArea(VerticalLayout structureCol) {
+        // On suppose que la zone de scroll est le 2ème élément (index 1)
+        return (VerticalLayout) structureCol.getChildren().skip(1).findFirst().orElse(null);
     }
 
 
@@ -97,17 +128,22 @@ public class DialogModifierMatch extends Dialog {
         try {
             List<Joueur> joueursA = Equipe.getJoueursDeLEquipe(match.getEquipe1().getId());
             List<Joueur> joueursB = Equipe.getJoueursDeLEquipe(match.getEquipe2().getId());
+            List<Integer> idsInTeams = new ArrayList<>();
+            joueursA.forEach(j -> idsInTeams.add(j.getId()));
+            joueursB.forEach(j -> idsInTeams.add(j.getId()));
 
-            for (Joueur j : joueursA) {
-                JoueurWidget widget = new JoueurWidget(j, true); // true = est à gauche
-                widgetsA.add(widget);
-                containerA.add(widget);
-            }
-            for (Joueur j : joueursB) {
-                JoueurWidget widget = new JoueurWidget(j, false); // false = est à droite
-                widgetsB.add(widget);
-                containerB.add(widget);
-            }
+            // NOTE : Assurez-vous que cette méthode existe dans votre modèle Joueur
+            List<Joueur> tousLesJoueursDuTournoi = Joueur.getJoueursInscritsComplets(this.tournoiId);
+
+            List<Joueur> joueursExempts = tousLesJoueursDuTournoi.stream()
+                    .filter(j -> !idsInTeams.contains(j.getId()))
+                    .collect(Collectors.toList());
+
+            for (Joueur j : joueursA) addWidgetToZone(new JoueurWidget(j), Zone.EQUIPE_A);
+            for (Joueur j : joueursB) addWidgetToZone(new JoueurWidget(j), Zone.EQUIPE_B);
+            for (Joueur j : joueursExempts) addWidgetToZone(new JoueurWidget(j), Zone.EXEMPT);
+
+            updateExemptTitle();
 
         } catch (SQLException e) {
             Notification.show("Erreur de chargement : " + e.getMessage()).addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -115,32 +151,66 @@ public class DialogModifierMatch extends Dialog {
         }
     }
 
-    /**
-     * MÉTHODE CENTRALE DU SWAP.
-     * Déplace le widget d'une liste Java à l'autre ET d'un conteneur graphique à l'autre.
-     */
-    private void swapWidget(JoueurWidget widget) {
-        if (widgetsA.contains(widget)) {
-            // Il est dans A, on le passe dans B
-            widgetsA.remove(widget);
-            containerA.remove(widget); // Vaadin le détache visuellement de gauche
+    // --- LOGIQUE CENTRALISÉE DU DÉPLACEMENT ---
 
-            widget.setDirectionDroite(false); // La flèche pointera vers la gauche
-            widgetsB.add(widget);
-            containerB.add(widget); // Vaadin l'attache visuellement à droite
-        } else {
-            // Il est dans B, on le passe dans A
-            widgetsB.remove(widget);
-            containerB.remove(widget); // Détache de droite
+    private void moveWidget(JoueurWidget widget, Zone destination) {
+        Zone source = widget.getCurrentZone();
 
-            widget.setDirectionDroite(true); // La flèche pointera vers la droite
-            widgetsA.add(widget);
-            containerA.add(widget); // Attache à gauche
+        // 1. Retrait de la source
+        switch (source) {
+            case EQUIPE_A -> { widgetsA.remove(widget); scrollAreaA.remove(widget); }
+            case EQUIPE_B -> { widgetsB.remove(widget); scrollAreaB.remove(widget); }
+            case EXEMPT ->   { widgetsExempt.remove(widget); scrollAreaExempt.remove(widget); }
         }
-        // C'est instantané car on ne recharge aucune donnée, on déplace juste des boîtes.
+
+        // 2. Ajout à la destination
+        addWidgetToZone(widget, destination);
+
+        // 3. Mise à jour des états (validation + titre central)
         updateValidationState();
+        updateExemptTitle();
     }
 
+    private void addWidgetToZone(JoueurWidget widget, Zone zone) {
+        switch (zone) {
+            case EQUIPE_A -> { widgetsA.add(widget); scrollAreaA.add(widget); }
+            case EQUIPE_B -> { widgetsB.add(widget); scrollAreaB.add(widget); }
+            case EXEMPT ->   { widgetsExempt.add(widget); scrollAreaExempt.add(widget); }
+        }
+        widget.updateLayoutForZone(zone);
+    }
+
+    /**
+     * LA MÉTHODE CORRIGÉE ET ROBUSTE
+     * Recalcule le vrai nombre d'exemptés en interrogeant la BDD.
+     */
+    private void updateExemptTitle() {
+        // Si la variable n'est pas initialisée, on ne fait rien pour éviter le crash
+        if (titleExempt == null) return;
+
+        try {
+            // 1. On récupère tous les IDs des joueurs qui SONT dans les équipes A ou B
+            List<Integer> idsActifs = new ArrayList<>();
+            widgetsA.forEach(w -> idsActifs.add(w.getJoueur().getId()));
+            widgetsB.forEach(w -> idsActifs.add(w.getJoueur().getId()));
+
+            // 2. On récupère tous les joueurs du tournoi
+            List<Joueur> tousLesJoueurs = Joueur.getJoueursInscritsComplets(this.tournoiId);
+
+            // 3. On compte ceux qui NE SONT PAS actifs
+            long countExempts = tousLesJoueurs.stream()
+                    .filter(j -> !idsActifs.contains(j.getId()))
+                    .count();
+
+            // 4. Mise à jour du titre
+            titleExempt.setText("Exemptés (" + countExempts + ")");
+
+        } catch (SQLException e) {
+            titleExempt.setText("Exemptés (?)");
+            Notification.show("Erreur calcul exemptés : " + e.getMessage())
+                   .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+    }
 
     private void updateValidationState() {
         int countA = widgetsA.size();
@@ -153,15 +223,11 @@ public class DialogModifierMatch extends Dialog {
         validationMessage.addClassName(LumoUtility.TextColor.ERROR);
 
         if (!equilibre) {
-            if (countA == 0 && countB == 0) {
-                validationMessage.setText("Erreur : Les équipes sont vides.");
-            } else {
-                validationMessage.setText("Déséquilibre : " + countA + " vs " + countB + ".");
-            }
+            validationMessage.setText("Déséquilibre : A(" + countA + ") vs B(" + countB + ").");
         } else {
             validationMessage.removeClassName(LumoUtility.TextColor.ERROR);
             validationMessage.addClassName(LumoUtility.TextColor.SUCCESS);
-            validationMessage.setText("Équipes équilibrées (" + countA + " par équipe).");
+            validationMessage.setText("Équipes équilibrées (" + countA + " vs " + countB + "). Prêt à valider.");
         }
     }
 
@@ -169,85 +235,98 @@ public class DialogModifierMatch extends Dialog {
         btnSauvegarder.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         btnSauvegarder.addClickListener(e -> sauvegarder());
 
-        validationMessage.getElement().getStyle().set("font-size", "0.9em");
         validationMessage.getElement().getStyle().set("flex-grow", "1");
-
-        HorizontalLayout footerLayout = new HorizontalLayout();
+        HorizontalLayout footerLayout = new HorizontalLayout(validationMessage, new Button("Annuler", e -> this.close()), btnSauvegarder);
         footerLayout.setWidthFull();
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        footerLayout.add(validationMessage, new Button("Annuler", e -> this.close()), btnSauvegarder);
         getFooter().add(footerLayout);
     }
 
-
     private void sauvegarder() {
         try {
-            // On reconstruit les listes de joueurs à partir de la position finale des widgets
             List<Joueur> finaleA = widgetsA.stream().map(JoueurWidget::getJoueur).collect(Collectors.toList());
             List<Joueur> finaleB = widgetsB.stream().map(JoueurWidget::getJoueur).collect(Collectors.toList());
 
-            // C'EST SEULEMENT ICI QU'ON TOUCHE À LA BDD
+            // C'est ici que la magie opère : mise à jour des équipes ET des participants à la ronde
             Match.updateEquipesDuMatch(match, finaleA, finaleB);
 
-            Notification.show("Équipes modifiées avec succès !").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            Notification.show("Équipes et participants à la ronde modifiés avec succès !").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             this.close();
             com.vaadin.flow.component.UI.getCurrent().getPage().reload();
-
         } catch (SQLException e) {
-            Notification.show("Erreur sauvegarde : " + e.getMessage()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+            Notification.show("Erreur sauvegarde critique : " + e.getMessage()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+            e.printStackTrace();
         }
     }
 
 
     // ==========================================================================
-    // CLASSE INTERNE : Le "Widget" qui représente un joueur graphiquement
+    // CLASSE INTERNE : Le Widget Joueur Intelligent
     // ==========================================================================
     private class JoueurWidget extends HorizontalLayout {
         private Joueur joueur;
-        private Button moveBtn;
+        private Zone currentZone;
         private Span nameSpan;
 
-        public JoueurWidget(Joueur joueur, boolean estAGaucheInitialement) {
+
+        public JoueurWidget(Joueur joueur) {
             this.joueur = joueur;
             setWidthFull();
             setAlignItems(Alignment.CENTER);
             setPadding(true);
             setSpacing(true);
-            getElement().getStyle().set("background-color", "var(--lumo-base-color)");
-            getElement().getStyle().set("border-radius", "var(--lumo-border-radius-s)");
-            getElement().getStyle().set("box-shadow", "var(--lumo-box-shadow-xs)");
+            // Style "carte"
+            getElement().getStyle().set("background-color", "var(--lumo-base-color)")
+                         .set("border-radius", "var(--lumo-border-radius-s)")
+                         .set("box-shadow", "var(--lumo-box-shadow-xs)");
 
             nameSpan = new Span(joueur.getPrenom() + " " + joueur.getNom().toUpperCase());
-            nameSpan.getElement().getStyle().set("font-weight", "500");
-            setFlexGrow(1, nameSpan); // Le nom prend l'espace disponible
-
-            moveBtn = new Button();
-            moveBtn.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
-            // AU CLIC : On appelle la méthode de la classe parente pour se déplacer soi-même
-            moveBtn.addClickListener(e -> swapWidget(this));
-
-            setDirectionDroite(estAGaucheInitialement);
+            nameSpan.getElement().getStyle().set("font-weight", "500").set("font-size", "0.9em");
+            setFlexGrow(1, nameSpan); // Le nom prend l'espace dispo par défaut
         }
 
-        /**
-         * Change l'apparence du widget selon qu'il est à gauche ou à droite.
-         */
-        public void setDirectionDroite(boolean versLaDroite) {
-            removeAll();
-            Icon icon = (versLaDroite ? VaadinIcon.ARROW_RIGHT : VaadinIcon.ARROW_LEFT).create();
-            moveBtn.setIcon(icon);
-            
-            if (versLaDroite) {
-                // Equipe A : Nom à gauche, bouton à droite
-                add(nameSpan, moveBtn);
-                setJustifyContentMode(JustifyContentMode.BETWEEN);
-            } else {
-                // Equipe B : Bouton à gauche, nom à droite
-                add(moveBtn, nameSpan);
-                setJustifyContentMode(JustifyContentMode.START);
+        public void updateLayoutForZone(Zone zone) {
+            this.currentZone = zone;
+            removeAll(); // On vide le layout visuellement
+
+            // On prépare des boutons tout neufs
+            Button btnGoLeft = new Button(VaadinIcon.ARROW_LEFT.create());
+            btnGoLeft.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+
+            Button btnGoRight = new Button(VaadinIcon.ARROW_RIGHT.create());
+            btnGoRight.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+
+            switch (zone) {
+                case EQUIPE_A -> {
+                    // Zone Gauche : Nom + Bouton Droite (vers Exempt)
+                    setJustifyContentMode(JustifyContentMode.BETWEEN);
+                    btnGoRight.setTooltipText("Mettre en exempté");
+                    btnGoRight.addClickListener(e -> moveWidget(this, Zone.EXEMPT));
+                    add(nameSpan, btnGoRight);
+                }
+                case EQUIPE_B -> {
+                    // Zone Droite : Bouton Gauche (vers Exempt) + Nom
+                    setJustifyContentMode(JustifyContentMode.START);
+                    btnGoLeft.setTooltipText("Mettre en exempté");
+                    btnGoLeft.addClickListener(e -> moveWidget(this, Zone.EXEMPT));
+                    add(btnGoLeft, nameSpan);
+                }
+                case EXEMPT -> {
+                    // Zone Milieu : Bouton Gauche (vers A) + Nom + Bouton Droite (vers B)
+                    setJustifyContentMode(JustifyContentMode.BETWEEN);
+
+                    btnGoLeft.setTooltipText("Envoyer dans l'équipe A");
+                    btnGoLeft.addClickListener(e -> moveWidget(this, Zone.EQUIPE_A));
+
+                    btnGoRight.setTooltipText("Envoyer dans l'équipe B");
+                    btnGoRight.addClickListener(e -> moveWidget(this, Zone.EQUIPE_B));
+
+                    add(btnGoLeft, nameSpan, btnGoRight);
+                }
             }
         }
 
         public Joueur getJoueur() { return joueur; }
+        public Zone getCurrentZone() { return currentZone; }
     }
 }

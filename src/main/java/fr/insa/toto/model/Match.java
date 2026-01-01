@@ -259,31 +259,33 @@ public static void updateEquipesDuMatch(Match match, List<Joueur> nouvelleListeA
     Connection con = null;
     try {
         con = ConnectionPool.getConnection();
-        // DÉBUT DE LA TRANSACTION : on désactive l'enregistrement automatique
-        con.setAutoCommit(false); 
+        con.setAutoCommit(false); // DÉBUT TRANSACTION
 
-        // Mise à jour Equipe 1
+        // 1. Mise à jour des compositions d'équipe (Table Composition)
         if (match.getEquipe1() != null) {
             match.getEquipe1().remplacerJoueurs(con, nouvelleListeA);
         }
-        // Mise à jour Equipe 2
         if (match.getEquipe2() != null) {
             match.getEquipe2().remplacerJoueurs(con, nouvelleListeB);
         }
 
-        // VALIDATION DE LA TRANSACTION : tout s'est bien passé, on enregistre.
-        con.commit(); 
-    } catch (SQLException e) {
-        if (con != null) {
-            try { 
-                // ANNULATION : Erreur, on annule tout ce qui a été fait dans cette transaction
-                con.rollback(); 
-            } catch (SQLException ex) { /* Ignorer erreur de rollback */ } 
+        // 2. Mise à jour des participants de la ronde (Table ParticipationRonde)
+        if (match.getRonde() != null) {
+            List<Joueur> tousLesJoueursActifs = new ArrayList<>();
+            if (nouvelleListeA != null) tousLesJoueursActifs.addAll(nouvelleListeA);
+            if (nouvelleListeB != null) tousLesJoueursActifs.addAll(nouvelleListeB);
+
+            // Appel de la nouvelle méthode dans la même transaction
+            Ronde.updateParticipantsDeLaRonde(match.getRonde().getId(), tousLesJoueursActifs, con);
         }
-        throw e; // On relance l'erreur initiale pour prévenir l'interface
+        // ----------------
+
+        con.commit(); // VALIDATION GLOBALE
+    } catch (SQLException e) {
+        if (con != null) try { con.rollback(); } catch (SQLException ex) {} // ANNULATION GLOBALE EN CAS D'ERREUR
+        throw e;
     } finally {
         if (con != null) {
-            // On remet la connexion en mode normal avant de la fermer
             try { con.setAutoCommit(true); con.close(); } catch (SQLException e) {}
         }
     }

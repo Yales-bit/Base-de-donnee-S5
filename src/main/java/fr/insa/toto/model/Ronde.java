@@ -332,6 +332,31 @@ private void updateStatutRondeTransactionnel(Connection con) throws SQLException
         pst.executeUpdate();
     }
 }
+public static void updateParticipantsDeLaRonde(int rondeId, List<Joueur> tousLesJoueursActifs, Connection con) throws SQLException {
+    if (rondeId <= 0 || tousLesJoueursActifs == null) {
+        return; 
+    }
+
+    // 1. SUPPRESSION des anciens liens pour cette ronde
+    String deleteSql = "DELETE FROM ParticipationRonde WHERE idronde = ?";
+    try (PreparedStatement pstDel = con.prepareStatement(deleteSql)) {
+        pstDel.setInt(1, rondeId);
+        pstDel.executeUpdate();
+    }
+
+    // 2. INSERTION des nouveaux liens
+    if (!tousLesJoueursActifs.isEmpty()) {
+        String insertSql = "INSERT INTO ParticipationRonde (idronde, idjoueur) VALUES (?, ?)";
+        try (PreparedStatement pstIns = con.prepareStatement(insertSql)) {
+            for (Joueur j : tousLesJoueursActifs) {
+                pstIns.setInt(1, rondeId);
+                pstIns.setInt(2, j.getId());
+                pstIns.addBatch(); // Utilisation du batch pour la performance
+            }
+            pstIns.executeBatch();
+        }
+    }
+}
 
     // Getters et Setters
 
