@@ -132,7 +132,6 @@ private void initialiserWidgets() {
             List<Joueur> joueursB = Equipe.getJoueursDeLEquipe(match.getEquipe2().getId());
 
             // 2. On charge TOUS les joueurs inscrits au tournoi (la base de référence)
-            // J'utilise le nom exact de la méthode que tu as mentionné :
             List<Joueur> tousInscrits = Joueur.getJoueursInscritsComplets(this.tournoiId);
 
             // 3. --- LE POINT CRUCIAL CORRIGÉ ---
@@ -194,36 +193,12 @@ private void initialiserWidgets() {
         widget.updateLayoutForZone(zone);
     }
 
-    /**
-     * LA MÉTHODE CORRIGÉE ET ROBUSTE
-     * Recalcule le vrai nombre d'exemptés en interrogeant la BDD.
-     */
-    private void updateExemptTitle() {
-        // Si la variable n'est pas initialisée, on ne fait rien pour éviter le crash
+
+   private void updateExemptTitle() {
+        // Si la référence graphique n'existe pas, on ne fait rien
         if (titleExempt == null) return;
-
-        try {
-            // 1. On récupère tous les IDs des joueurs qui SONT dans les équipes A ou B
-            List<Integer> idsActifs = new ArrayList<>();
-            widgetsA.forEach(w -> idsActifs.add(w.getJoueur().getId()));
-            widgetsB.forEach(w -> idsActifs.add(w.getJoueur().getId()));
-
-            // 2. On récupère tous les joueurs du tournoi
-            List<Joueur> tousLesJoueurs = Joueur.getJoueursInscritsComplets(this.tournoiId);
-
-            // 3. On compte ceux qui NE SONT PAS actifs
-            long countExempts = tousLesJoueurs.stream()
-                    .filter(j -> !idsActifs.contains(j.getId()))
-                    .count();
-
-            // 4. Mise à jour du titre
-            titleExempt.setText("Exemptés (" + countExempts + ")");
-
-        } catch (SQLException e) {
-            titleExempt.setText("Exemptés (?)");
-            Notification.show("Erreur calcul exemptés : " + e.getMessage())
-                   .addThemeVariants(NotificationVariant.LUMO_ERROR);
-        }
+        int count = widgetsExempt.size();
+        titleExempt.setText("Exemptés (" + count + ")");
     }
 
     private void updateValidationState() {

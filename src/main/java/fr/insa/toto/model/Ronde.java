@@ -357,6 +357,31 @@ public static void updateParticipantsDeLaRonde(int rondeId, List<Joueur> tousLes
         }
     }
 }
+public static void updateParticipantsDeLaRondeByIds(int rondeId, List<Integer> idsJoueurs, Connection con) throws SQLException {
+        if (rondeId <= 0 || idsJoueurs == null) {
+            return;
+        }
+
+        // 1. SUPPRESSION des anciens liens pour cette ronde
+        String deleteSql = "DELETE FROM ParticipationRonde WHERE idronde = ?";
+        try (PreparedStatement pstDel = con.prepareStatement(deleteSql)) {
+            pstDel.setInt(1, rondeId);
+            pstDel.executeUpdate();
+        }
+
+        // 2. INSERTION des nouveaux liens
+        if (!idsJoueurs.isEmpty()) {
+            String insertSql = "INSERT INTO ParticipationRonde (idronde, idjoueur) VALUES (?, ?)";
+            try (PreparedStatement pstIns = con.prepareStatement(insertSql)) {
+                for (Integer idJoueur : idsJoueurs) {
+                    pstIns.setInt(1, rondeId);
+                    pstIns.setInt(2, idJoueur);
+                    pstIns.addBatch();
+                }
+                pstIns.executeBatch();
+            }
+        }
+    }
 public static List<Integer> getIdsJoueursParticipants(int idRonde) throws SQLException {
     List<Integer> ids = new ArrayList<>();
     String sql = "SELECT idjoueur FROM ParticipationRonde WHERE idronde = ?";

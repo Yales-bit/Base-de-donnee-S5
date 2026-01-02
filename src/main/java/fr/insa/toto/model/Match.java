@@ -255,7 +255,7 @@ public void updateStatut(Connection con) throws SQLException {
          pst.executeUpdate();
      }
 }
-public static void updateEquipesDuMatch(Match match, List<Joueur> nouvelleListeA, List<Joueur> nouvelleListeB) throws SQLException {
+/*public static void updateEquipesDuMatch(Match match, List<Joueur> nouvelleListeA, List<Joueur> nouvelleListeB) throws SQLException {
     Connection con = null;
     try {
         con = ConnectionPool.getConnection();
@@ -290,6 +290,53 @@ public static void updateEquipesDuMatch(Match match, List<Joueur> nouvelleListeA
         }
     }
 }
+*/
+public static void updateEquipesDuMatch(Match match, List<Joueur> nouvelleListeA, List<Joueur> nouvelleListeB) throws SQLException {
+        Connection con = null;
+        try {
+            con = ConnectionPool.getConnection();
+            con.setAutoCommit(false); // DÉBUT TRANSACTION
+
+            // 1. Mise à jour des compositions d'équipe (Table Composition)
+            if (match.getEquipe1() != null) {
+                match.getEquipe1().remplacerJoueurs(con, nouvelleListeA);
+            }
+            if (match.getEquipe2() != null) {
+                match.getEquipe2().remplacerJoueurs(con, nouvelleListeB);
+            }
+
+            // 2. Mise à jour des participants de la ronde (Table ParticipationRonde)
+            if (match.getRonde() != null) {
+                int rondeId = match.getRonde().getId();
+
+                List<Integer> tousLesIdsActifsDeLaRonde = new ArrayList<>();
+                // Requête : Sélectionne les ID des joueurs qui sont dans une équipe qui appartient à la ronde actuelle.
+                String sqlRecalc = "SELECT DISTINCT c.idjoueur FROM Composition c JOIN Equipe e ON c.idequipe = e.id WHERE e.idronde = ?";
+
+                try (PreparedStatement pst = con.prepareStatement(sqlRecalc)) {
+                    pst.setInt(1, rondeId);
+                    try (ResultSet rs = pst.executeQuery()) {
+                        while (rs.next()) {
+                            tousLesIdsActifsDeLaRonde.add(rs.getInt("idjoueur"));
+                        }
+                    }
+                }
+
+                // Appel de la nouvelle méthode optimisée dans Ronde avec la liste complète recalculée
+                Ronde.updateParticipantsDeLaRondeByIds(rondeId, tousLesIdsActifsDeLaRonde, con);
+                // --------------------------------
+            }
+
+            con.commit(); // VALIDATION GLOBALE
+        } catch (SQLException e) {
+            if (con != null) try { con.rollback(); } catch (SQLException ex) {} // ANNULATION GLOBALE EN CAS D'ERREUR
+            throw e;
+        } finally {
+            if (con != null) {
+                try { con.setAutoCommit(true); con.close(); } catch (SQLException e) {}
+            }
+        }
+    }
 
     // Getters et Setters
 
