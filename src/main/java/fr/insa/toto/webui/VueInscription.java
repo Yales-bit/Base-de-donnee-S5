@@ -27,8 +27,8 @@ import java.util.stream.IntStream;
 public class VueInscription extends VerticalLayout {
 
     // Déclaration des champs au niveau de la classe pour y accéder dans les deux boutons
-    private TextField tfNom = new TextField("Nom");
-    private TextField tfPrenom = new TextField("Prenom");
+    private TextField tfNom = new TextField("Prenom"); //inversion
+    private TextField tfPrenom = new TextField("Nom");
     private TextField tfSurnom = new TextField("Surnom");
 
     // MODIFICATION ICI : Utilisation de ComboBox<Integer> au lieu de NumberField
