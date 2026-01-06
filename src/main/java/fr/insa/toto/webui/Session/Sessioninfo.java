@@ -20,7 +20,7 @@ package fr.insa.toto.webui.Session;
 
 import com.vaadin.flow.server.VaadinSession;
 import fr.insa.toto.model.Utilisateur;
-import java.io.Serializable;
+import java.io.Serializable; //permet à l’objet d’être stocké en session
 import java.util.Optional;
 
 /**
@@ -29,9 +29,9 @@ import java.util.Optional;
  */
 public class Sessioninfo implements Serializable {
     private static final long serialVersionUID = 1L;
-    private Utilisateur curUser;
+    private Utilisateur curUser; // utilisateur actuellement connecté si curUser == null alors personne
     
-    public static Sessioninfo getOrCreate(){
+    public static Sessioninfo getOrCreate(){ // assure un seul par session utilisateur
     VaadinSession cureSession = VaadinSession.getCurrent(); // map qui associe une clé à une valeur
     Sessioninfo curInfo = cureSession.getAttribute(Sessioninfo.class);
     if (curInfo == null){
