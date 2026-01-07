@@ -19,8 +19,6 @@ along with CoursBeuvron.  If not, see <http://www.gnu.org/licenses/>.
 package fr.insa.beuvron.vaadin.utils;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.html.Image;
-import com.vaadin.flow.server.StreamResource;
 import java.awt.Color;
 
 /**

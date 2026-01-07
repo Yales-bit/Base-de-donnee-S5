@@ -22,16 +22,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import fr.insa.toto.model.StatutSexe;
+//import fr.insa.toto.model.StatutSexe;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.ResultSet;
-
-import org.hibernate.annotations.processing.SQL;
-
 import fr.insa.beuvron.utils.database.ClasseMiroir;
 import fr.insa.beuvron.utils.database.ConnectionPool;
-import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
 import fr.insa.toto.model.dto.LigneHistoriqueDTO;
 
 public class Joueur extends ClasseMiroir {
@@ -45,21 +41,6 @@ public class Joueur extends ClasseMiroir {
     private StatutSexe sexe;
     private int taille;
     private int pointsDansTournoi = 0;
-
-    // Constructeur utilisé quand on ne connait pas encore l'id du joueur (il vient
-    // d'être créé) A SUPPRIMER
-    public Joueur(String surnom, StatutSexe sexe, int taille) {
-        super();
-        this.surnom = surnom;
-        this.sexe = sexe;
-        this.taille = taille;
-        this.scoretotal = 0;
-        this.prenom = null;
-        this.nom = null;
-        this.mois = 0;
-        this.jour = 0;
-        this.annee = 0;
-    }
 
     // Constructeur avec nom, prenom, date de naissance
     public Joueur(String surnom, StatutSexe sexe, int taille, String prenom, String nom, int mois, int jour,
@@ -75,22 +56,6 @@ public class Joueur extends ClasseMiroir {
         this.annee = annee;
     }
 
-    // Constructeur utilisé quand on connait l'id du joueur (il vient d'avoir son id
-    // attribué) A SUPPRIMER
-    /*
-     * public Joueur(int id, String surnom, StatutSexe sexe, int taille) {
-     * super(id);
-     * this.surnom = surnom;
-     * this.sexe = sexe;
-     * this.taille = taille;
-     * this.scoretotal = 0;
-     * this.prenom = null;
-     * this.nom = null;
-     * this.mois = 0;
-     * this.jour = 0;
-     * this.annee = 0;
-     * }
-     */
 
     // Constructeur avec id, nom, prenom, date de naissance
     public Joueur(int id, String surnom, StatutSexe sexe, int taille, String prenom, String nom, int mois, int jour,
@@ -105,18 +70,6 @@ public class Joueur extends ClasseMiroir {
         this.jour = jour;
         this.annee = annee;
     }
-
-    // Constructeur avec score total A SUPPRIMER
-    /*
-     * public Joueur(int id, String surnom, StatutSexe sexe, int taille, int
-     * scoretotal) {
-     * super(id);
-     * this.surnom = surnom;
-     * this.sexe = sexe;
-     * this.taille = taille;
-     * this.scoretotal = scoretotal;
-     * }
-     */
 
     // Constructeur avec tout sauf annee mois jour
     public Joueur(int id, String surnom, StatutSexe sexe, int taille, String prenom, String nom) {
@@ -162,9 +115,7 @@ public class Joueur extends ClasseMiroir {
                     && (sqlErrorMessage.contains("Duplicate entry")
                             || sqlErrorMessage.contains("Violation d'index unique"))
                     && sqlErrorMessage.toLowerCase().contains("surnom")) {
-                throw new SQLException("Le joueur " + J.getSurnom() + " existe deja"); // Par la suite ajouter une
-                                                                                       // option permettant de modifier
-                                                                                       // le joueur
+                throw new SQLException("Le joueur " + J.getSurnom() + " existe deja"); 
             }
         }
 
@@ -174,7 +125,6 @@ public class Joueur extends ClasseMiroir {
     public static List<Joueur> rechercherParSurnom(String recherche) throws SQLException {
         List<Joueur> resultats = new ArrayList<>();
         try (Connection con = ConnectionPool.getConnection()) {
-            // Le % permet de chercher "n'importe quoi" avant ou après le texte
             PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur WHERE surnom LIKE ?");
             pst.setString(1, "%" + recherche + "%");
             ResultSet rs = pst.executeQuery();
@@ -206,7 +156,6 @@ public class Joueur extends ClasseMiroir {
     public static List<Joueur> rechercherParPrenom(String recherche) throws SQLException {
         List<Joueur> resultats = new ArrayList<>();
         try (Connection con = ConnectionPool.getConnection()) {
-            // Le % permet de chercher "n'importe quoi" avant ou après le texte
             PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur WHERE prenom LIKE ?");
             pst.setString(1, "%" + recherche + "%");
             ResultSet rs = pst.executeQuery();
@@ -239,7 +188,6 @@ public class Joueur extends ClasseMiroir {
     public static List<Joueur> rechercherParNom(String recherche) throws SQLException {
         List<Joueur> resultats = new ArrayList<>();
         try (Connection con = ConnectionPool.getConnection()) {
-            // Le % permet de chercher "n'importe quoi" avant ou après le texte
             PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur WHERE nom LIKE ?");
             pst.setString(1, "%" + recherche + "%");
             ResultSet rs = pst.executeQuery();
@@ -268,7 +216,6 @@ public class Joueur extends ClasseMiroir {
         return resultats;
     }
 
-    // 1. Méthode pour récupérer un joueur unique par son ID
     public static Joueur getJoueurById(int id) throws SQLException {
         try (Connection con = ConnectionPool.getConnection()) {
             PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur WHERE id = ?");
@@ -297,70 +244,7 @@ public class Joueur extends ClasseMiroir {
                 return new Joueur(id, surnom, sexe, taille, prenom, nom, mois, jour, annee);
             }
         }
-        return null; // Pas trouvé
-    }
-
-    /*
-     * public void ajouterPoints(int points) { this.scoretotal += points; }
-     * public void update(Connection con) throws SQLException, Exception {
-     * if (this.getId() == -1) {
-     * throw new
-     * Exception("Impossible de mettre à jour ce joueur : il n'a pas encore été sauvegardé en base de données (son ID est -1). Utilisez saveInDB() d'abord."
-     * );
-     * }
-     * String query =
-     * "UPDATE Joueur SET surnom = ?, taille = ?, sexe = ?, prenom = ?, nom = ?, mois = ?, jour = ?, annee = ? WHERE id = ?"
-     * ;
-     * try (PreparedStatement pst = con.prepareStatement(query)) {
-     * pst.setString(1, this.surnom);
-     * pst.setInt(2, this.taille);
-     * pst.setString(3, this.sexe.toString());
-     * pst.setString(4, this.prenom);
-     * pst.setString(5, this.nom);
-     * pst.setInt(6, this.mois);
-     * pst.setInt(7, this.jour);
-     * pst.setInt(8, this.annee);
-     * // Le dernier paramètre est l'ID pour le WHERE
-     * pst.setInt(5, this.getId());
-     * 
-     * // Exécution
-     * int rowsAffected = pst.executeUpdate();
-     * // (Optionnel) Vérification de sécurité
-     * if (rowsAffected == 0) {
-     * throw new Exception("Erreur : L'ID " + this.getId() +
-     * " n'a pas été trouvé en base de données. Aucune mise à jour effectuée.");
-     * }
-     * }
-     * }
-     */ // cette methode n'a plus lieu car la table joueur n'a plus de score, c'est
-        // gerer par la table points
-    public static List<Joueur> getClassementGeneral() throws Exception {
-        List<Joueur> classement = new ArrayList<>();
-        String query = "SELECT * FROM Joueur ORDER BY scoretotal DESC"; // OBSOLETE, le score n'est plus dans la table
-                                                                        // joueur
-        try (Connection con = ConnectionPool.getConnection();
-                PreparedStatement pst = con.prepareStatement(query);
-                ResultSet rs = pst.executeQuery()) {
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                String surnom = rs.getString("surnom");
-                StatutSexe sexe = StatutSexe.valueOf(rs.getString("sexe"));
-                int taille = rs.getInt("taille");
-                String prenom = rs.getString("prenom");
-                String nom = rs.getString("nom");
-                int mois = rs.getInt("mois");
-                int jour = rs.getInt("jour");
-                int annee = rs.getInt("annee");
-                Joueur j = new Joueur(id, surnom, sexe, taille, prenom, nom, mois, jour, annee);
-                classement.add(j);
-            }
-        } catch (IllegalArgumentException e) {
-            // Erreur spécifique si la valeur du sexe en BDD ne correspond pas à l'Enum
-            throw new Exception("Erreur de données en base : statut de sexe inconnu.");
-        } catch (SQLException e) {
-            throw new Exception("Erreur technique lors de la récupération du classement.", e);
-        }
-        return classement;
+        return null;
     }
 
     @Override
@@ -408,7 +292,6 @@ public class Joueur extends ClasseMiroir {
             PreparedStatement pst = con.prepareStatement("SELECT * FROM Joueur");
             ResultSet rs = pst.executeQuery();
             while (rs.next()) {
-                // On réutilise le code de mapping existant ou on le simplifie ici
                 int id = rs.getInt("id");
                 String surnom = rs.getString("surnom");
                 String sexeStr = rs.getString("sexe");
@@ -481,7 +364,6 @@ public class Joueur extends ClasseMiroir {
         pst.setInt(1, idTournoi);
         try (ResultSet rs = pst.executeQuery()) {
             while (rs.next()) {
-                // Adapte le constructeur à ta classe Joueur
                 joueurs.add(new Joueur(
                     rs.getInt("id"),
                     rs.getString("surnom"),
@@ -507,16 +389,6 @@ public class Joueur extends ClasseMiroir {
         this.pointsDansTournoi = points;
     }
 
-    /*
-     * public static void main(String[] args) {
-     * try {
-     * Joueur j1 = new Joueur("testCre2", "J", 152);
-     * int id = j1.saveInDB(ConnectionSimpleSGBD.defaultCon());
-     * } catch (SQLException ex) {
-     * throw new Error(ex);
-     * }
-     * }
-     */
 
     /**
      * @return the surnom

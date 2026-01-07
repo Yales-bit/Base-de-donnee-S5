@@ -170,10 +170,9 @@ public boolean estTerminee() throws SQLException {
     if (numeroRondeActuelle <= 1) {
         return prioritaires;
     }
-
     int numeroRondePrecedente = numeroRondeActuelle - 1;
 
-    // CORRECTION 1 : Utilisation de Text Block pour une requête SQL propre et sans erreur d'espace.
+    // Requête SQL pour obtenir les joueurs prioritaires
     String sql = """
         SELECT j.*
         FROM Joueur j
@@ -191,7 +190,6 @@ public boolean estTerminee() throws SQLException {
          PreparedStatement pst = con.prepareStatement(sql)) {
 
         pst.setInt(1, idTournoi);
-        // CORRECTION 2 : On utilise bien la variable 'numeroRondePrecedente' calculée au début !
         pst.setInt(2, numeroRondePrecedente);
         pst.setInt(3, idTournoi);
 
@@ -208,27 +206,7 @@ public boolean estTerminee() throws SQLException {
     }
     return prioritaires;
 }
-/*public static List<Ronde> getRondesDuTournoi(int idTournoi) throws SQLException {
-    List<Ronde> rondes = new ArrayList<>();
-    String sql = "SELECT id FROM Ronde WHERE idtournoi = ? ORDER BY numero ASC";
 
-    try (Connection con = ConnectionPool.getConnection();
-         PreparedStatement pst = con.prepareStatement(sql)) {
-        
-        pst.setInt(1, idTournoi);
-        
-        try (ResultSet rs = pst.executeQuery()) {
-            while (rs.next()) {
-                int idRonde = rs.getInt("id");
-                Ronde r = Ronde.getRonde(idRonde);
-                if (r != null) {
-                    rondes.add(r);
-                }
-            }
-        }
-    }
-    return rondes;
-}*/
 public static List<Ronde> getRondesDuTournoi(int idTournoi) throws SQLException {
     List<Ronde> rondes = new ArrayList<>();
     // CHANGEMENT SQL : On sélectionne TOUTES (*) les colonnes, pas juste l'ID

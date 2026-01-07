@@ -2,9 +2,6 @@
 (comme avec une verification de la session avant de pouvoir inscrire n'importe qui)
  on ne changera que cette classe, et pas les différentes vues qui l'implémentent*/
 package fr.insa.toto.model;
-import fr.insa.toto.model.Joueur;
-import fr.insa.toto.model.Tournoi;
-
 import java.util.List;
 
 public class ServiceInscription {

@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import fr.insa.beuvron.utils.database.ClasseMiroir;
-import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
 
 
 

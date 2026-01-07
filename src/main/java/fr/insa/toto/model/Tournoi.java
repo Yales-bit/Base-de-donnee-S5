@@ -25,7 +25,6 @@ package fr.insa.toto.model;
 
 import fr.insa.beuvron.utils.database.ClasseMiroir;
 import fr.insa.beuvron.utils.database.ConnectionPool;
-import fr.insa.beuvron.utils.database.ConnectionSimpleSGBD;
 import fr.insa.toto.model.dto.LigneClassement;
 
 import java.sql.Connection;
@@ -36,10 +35,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.apache.commons.lang3.ObjectUtils.Null;
 
 public class Tournoi extends ClasseMiroir {
     //private int id;
@@ -363,39 +358,6 @@ public boolean estNombreJoueursSuffisant() throws SQLException {
 }
 
 
-/**
- * Démarre la première ronde si toutes les conditions sont remplies.
- * @throws Exception si le nombre de joueurs est insuffisant.
- */
-/*public Ronde demarrerPremiereRonde() throws Exception {
-    
-    // 1. Vérification de la condition demandée
-    if (!this.estNombreJoueursSuffisant()) {
-        int nbJoueursInscrits = this.compterJoueursInscrits();
-        int nbJoueursParEquipe = this.getNbrJoueursParEquipe();
-        int minimumRequis = 2 * nbJoueursParEquipe;
-        
-        // Lance une exception claire que la VueDetailsTournoi pourra afficher
-        throw new Exception(
-            "Impossible de démarrer la ronde. Nombre de joueurs insuffisant : " +
-            nbJoueursInscrits + " inscrits. Minimum requis pour former 2 équipes : " + minimumRequis + 
-            " (" + nbJoueursParEquipe + " joueurs par équipe)."
-        );
-    }
-    
-    // 2. Création de la Ronde 
-    // Attention : Tu devras implémenter le saveInDB pour Ronde et sa logique de numéro !
-    Ronde nouvelleRonde = new Ronde(1, this.getId(), StatutRonde.EN_COURS);
-    
-    // Étape technique future :
-    // - Sauvegarder la nouvelleRonde en BDD (nouvelleRonde.saveInDB(...))
-    // - Appeler la méthode de répartition des joueurs et de création des Matchs (Étape suivante)
-    // - Mettre à jour le statut du Tournoi (this.setOuvert(true) puis this.updateInDB())
-
-    return nouvelleRonde;
-}*/ //OBSOLETE
-
-
 private void genererMatchsPourRonde(Ronde ronde) throws Exception {
         List<Joueur> tousInscrits = this.getJoueursInscrits();
         
@@ -403,6 +365,7 @@ private void genererMatchsPourRonde(Ronde ronde) throws Exception {
         List<Joueur> prioritaires = Ronde.getJoueursPrioritaires(this.getId(), ronde.getNumero());
         
         List<Joueur> normaux = new ArrayList<>(tousInscrits);
+
         // On retire de la liste 'normaux' ceux qui sont prioritaires
         for (Joueur prioritaire : prioritaires) {
             normaux.removeIf(joueurNormal -> joueurNormal.getId() == prioritaire.getId());
@@ -423,21 +386,12 @@ private void genererMatchsPourRonde(Ronde ronde) throws Exception {
         
         // Vérification minimale : peut-on faire au moins UN match ?
         if (totalJoueursDispo < nbJoueursParMatch) {
-            // Cas critique : pas assez de monde. On ne peut rien générer.
-            // Selon les règles, soit on annule la ronde, soit on bloque le processus.
-            // Ici, on bloque.
+            //  pas assez de monde. On ne peut rien générer.
             throw new Exception("Pas assez de joueurs disponibles (" + totalJoueursDispo + ") pour générer ne serait-ce qu'un match (" + nbJoueursParMatch + " requis).");
         }
-
-        // --- NOUVELLE LOGIQUE : LIMITATION PAR LES TERRAINS ---
         
-        // 1. Combien de matchs MAXIMUM peut-on faire avec les joueurs disponibles ?
         int maxMatchsParJoueurs = totalJoueursDispo / nbJoueursParMatch;
-        
-        // 2. Combien de terrains avons-nous ?
         int nbrTerrainsDispo = this.getNbrTerrains();
-        
-        // 3. Le nombre RÉEL de matchs est le plus petit des deux
         int nombreMatchsAGenerer = Math.min(maxMatchsParJoueurs, nbrTerrainsDispo);
         
         System.out.println("Info Ronde " + ronde.getNumero() + " : " + totalJoueursDispo + " joueurs, " 
@@ -459,12 +413,10 @@ private void genererMatchsPourRonde(Ronde ronde) throws Exception {
                 // On "pioche" les joueurs en tête de liste et on les retire du pool
                 for (int k = 0; k < nbJoueursParEquipe; k++) equipeA.add(poolDeTirage.remove(0));
                 for (int k = 0; k < nbJoueursParEquipe; k++) equipeB.add(poolDeTirage.remove(0));
-
-                // On ajoute ces joueurs à la liste des participants confirmés
                 participantsDeCetteRonde.addAll(equipeA);
                 participantsDeCetteRonde.addAll(equipeB);
 
-                // Création Equipes et Match en base (ton code existant)
+                // Création Equipes et Match en base
                 String nomEq1 = "T" + this.getId() + "-R" + ronde.getNumero() + "-M" + (i + 1) + "-A";
                 Equipe eq1 = new Equipe(nomEq1, ronde.getId());
                 eq1.saveInDB(con);
@@ -479,8 +431,6 @@ private void genererMatchsPourRonde(Ronde ronde) throws Exception {
                 m.saveInDB(con);
             }
 
-            // --- MISE A JOUR DES PARTICIPANTS (Nouvelle méthode transactionnelle) ---
-            // On utilise la méthode statique de Ronde qu'on a créée à l'étape précédente.
             // Elle supprime les anciens (si besoin) et insère les nouveaux dans la même transaction.
             Ronde.updateParticipantsDeLaRonde(ronde.getId(), participantsDeCetteRonde, con);
 
@@ -532,11 +482,11 @@ public void lancerTournoi() throws Exception {
 public void passerRondeSuivante() throws Exception {
     System.out.println("Tentative de passage à la ronde suivante pour le tournoi " + this.getId());
 
-    // 1. On demande à la base : quelle est la prochaine ronde en attente ?
+    // quelle est la prochaine ronde en attente ?
     Ronde prochaineRonde = Ronde.getProchaineRondeEnAttente(this.getId());
 
     if (prochaineRonde == null) {
-        // CAS A : Plus aucune ronde en attente. Le tournoi est donc TERMINÉ.
+        //Plus aucune ronde en attente. Le tournoi est donc TERMINÉ.
         System.out.println("Aucune ronde en attente trouvée. Fin du tournoi " + this.getNom());
 
         this.setFini(true);
@@ -546,18 +496,12 @@ public void passerRondeSuivante() throws Exception {
             // On sauvegarde le nouveau statut "fini" en base
             this.updateStatutTournoi(con);
         }
-        // C'est fini, on s'arrête là.
         return;
     }
 
-    // CAS B : Une ronde en attente a été trouvée. ON LA DÉMARRE.
+    // Une ronde en attente a été trouvée. ON LA DÉMARRE.
     System.out.println("Prochaine ronde trouvée : Ronde n°" + prochaineRonde.getNumero() + " (ID: " + prochaineRonde.getId() + "). Démarrage...");
-
-    // 1. Changer son statut pour qu'elle apparaisse "En cours"
     prochaineRonde.updateStatutRonde(StatutRonde.EN_COURS);
-
-    // 2. Générer ses matchs et les sauvegarder en base
-    // (Utilise la méthode existante qui gère les priorités si ce n'est pas la ronde 1)
     this.genererMatchsPourRonde(prochaineRonde);
 
     System.out.println("Ronde n°" + prochaineRonde.getNumero() + " démarrée avec succès.");

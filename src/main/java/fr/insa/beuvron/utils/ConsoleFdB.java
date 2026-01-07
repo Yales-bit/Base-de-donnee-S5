@@ -229,7 +229,7 @@ public class ConsoleFdB implements java.io.Serializable {
      * @see java.lang.System#out
      */
     public static String entreeTexte(String s) {
-        boolean encore = true;
+        //boolean encore = true;
         String res = null;
 
         try {

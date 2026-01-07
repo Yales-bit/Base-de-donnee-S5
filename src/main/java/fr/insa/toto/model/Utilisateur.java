@@ -19,7 +19,6 @@ along with CoursBeuvron.  If not, see <http://www.gnu.org/licenses/>.
 package fr.insa.toto.model;
 
 import fr.insa.beuvron.utils.database.ClasseMiroir;
-import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -33,7 +32,7 @@ import java.util.Optional;
  *
  * @author vicbl
  */
-public class Utilisateur extends ClasseMiroir implements Serializable{
+public class Utilisateur extends ClasseMiroir{
     private static final long serialVersionUID = 1L; // version 1
     private String identifiant;
     private String mdp;

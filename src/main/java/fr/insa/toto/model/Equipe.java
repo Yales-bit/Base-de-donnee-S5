@@ -12,7 +12,6 @@ import fr.insa.beuvron.utils.database.ClasseMiroir;
 import fr.insa.beuvron.utils.database.ConnectionPool;
 
 public class Equipe extends ClasseMiroir {
-    private int idequipe;
     private String nom;
     private int score;
     private int idronde;

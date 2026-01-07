@@ -531,35 +531,10 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
         contenuOngletClassement.setPadding(false); 
         contenuOngletClassement.setSpacing(false);
 
-        // --- CONFIGURATION DU SLIDER (CURSEUR) ---
-        /*sliderTopN.setType("range");
-        sliderTopN.getElement().setAttribute("min", "1");
-        sliderTopN.getElement().setAttribute("max", "10"); 
-        sliderTopN.getElement().setProperty("value", "10");
-        
-        sliderTopN.setWidth("200px");
-        sliderTopN.setValue("10"); // Valeur par défaut
-        sliderTopN.setWidth("200px");
-
-        sliderLabelValue.setText("Afficher le Top 10");
-        sliderLabelValue.addClassName(LumoUtility.FontWeight.BOLD);
-        sliderLabelValue.getElement().getStyle().set("margin-left", "10px");
-
-        // Listener : quand le curseur bouge, on filtre la grille
-        sliderTopN.getElement().addEventListener("input", e -> {
-            String val = sliderTopN.getValue();
-            sliderLabelValue.setText("Afficher le Top " + val);
-            filtrerGrilleClassement(Integer.parseInt(val));
-        });
-
-        HorizontalLayout headerFilter = new HorizontalLayout(new Span("Filtrer : "), sliderTopN, sliderLabelValue);
-        headerFilter.setAlignItems(Alignment.CENTER);*/
-        // -----------------------------------------
 
         gridClassement.setSizeFull();
         gridClassement.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
 
-        // ... (Vos colonnes de grille existantes ne changent pas) ...
         gridClassement.addColumn(new ComponentRenderer<>(ligne -> {
             Span rangSpan = new Span("#" + ligne.getRang());
             rangSpan.addClassName(LumoUtility.FontWeight.BOLD);
@@ -579,17 +554,11 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
             return pointsSpan;
         })).setHeader("Total Points").setWidth("140px").setFlexGrow(0).setTextAlign(ColumnTextAlign.END);
 
-        // On ajoute le filtre PUIS la grille
         contenuOngletClassement.add( gridClassement);
         // La grille prend tout l'espace restant
         contenuOngletClassement.setFlexGrow(1, gridClassement);
     }
-    /*private void filtrerGrilleClassement(int n) {
-        List<LigneClassement> topNList = classementCompletCache.stream()
-                .limit(n)
-                .collect(Collectors.toList());
-        gridClassement.setItems(topNList);
-    }*/
+
 
 
     private void actualiserClassement() {
@@ -599,10 +568,8 @@ public class VueDetailsTournoi extends VerticalLayout implements HasUrlParameter
             List<LigneClassement> classement = tournoiActuel.getClassement();
             gridClassement.setItems(classement);
             
-            // Petit message optionnel si le tournoi est en cours mais qu'aucun point n'a été distribué
             if (classement.isEmpty() && tournoiActuel.isOuvert() && !tournoiActuel.isFini()) {
-                 // Vous pouvez décommenter si vous voulez ce message
-                 // Notification.show("Le classement s'affichera ici après la première ronde.", 3000, Notification.Position.BOTTOM_START);
+                 Notification.show("Le classement s'affichera ici après la première ronde.", 3000, Notification.Position.BOTTOM_START);
             }
             
         } catch (SQLException e) {

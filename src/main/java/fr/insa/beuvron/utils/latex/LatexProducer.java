@@ -18,10 +18,6 @@
  */
 package fr.insa.beuvron.utils.latex;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
 
 /**
  *

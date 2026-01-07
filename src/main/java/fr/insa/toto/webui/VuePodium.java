@@ -3,13 +3,11 @@ package fr.insa.toto.webui;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -23,9 +21,7 @@ import fr.insa.toto.model.Tournoi;
 import java.util.List;
 
 @Route(value = "podium", layout = InterfacePrincipale.class)
-@PageTitle("Podium Final")
-// Important : remplacez './styles.css' par le chemin correct vers votre fichier CSS si différent
-//@CssImport("C:\\Users\\hackg\\Documents\\Base de Données\\Base-de-donnee-S5-1\\src\\main\\frontend\\themes\\myTheme\\styles.css") 
+@PageTitle("Podium Final") 
 public class VuePodium extends VerticalLayout implements HasUrlParameter<Integer> {
 
     private H1 titrePrincipal = new H1("PODIUM FINAL");

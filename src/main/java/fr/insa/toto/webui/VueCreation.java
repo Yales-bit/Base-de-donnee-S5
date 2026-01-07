@@ -16,7 +16,6 @@ import com.vaadin.flow.router.Route;
 import fr.insa.toto.model.Joueur;
 import fr.insa.toto.model.Tournoi;
 import fr.insa.toto.model.ServiceInscription;
-import com.vaadin.flow.component.tabs.TabSheet;
 
 import java.util.Set;
 

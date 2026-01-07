@@ -18,7 +18,6 @@
  */
 package fr.insa.beuvron.utils.latex;
 
-import java.io.Writer;
 
 /**
  *
